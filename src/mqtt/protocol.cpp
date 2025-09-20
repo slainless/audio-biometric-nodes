@@ -29,3 +29,5 @@ const char *ffi_mqttProtocol(const char *protocolKey, const char *key) {
   return nullptr;
 }
 }
+
+#undef X

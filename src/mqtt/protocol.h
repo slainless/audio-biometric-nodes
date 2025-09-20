@@ -26,7 +26,6 @@ MQTT_MESSAGE_TYPE
 namespace MqttTopic {
 MQTT_TOPIC
 } // namespace MqttTopic
-
 #undef X
 
 extern "C" {
