@@ -13,7 +13,6 @@
 #include <SPIFFS.h>
 #include <driver/i2s.h>
 
-
 Mqtt mqtt;
 Recorder recorder(I2S_NUM_0, RECORDER_SD_PIN, RECORDER_SCK_PIN,
                   RECORDER_FS_PIN);
@@ -35,7 +34,16 @@ void setup() {
 void reconnectHandler() { reconnectMqtt(mqtt); }
 
 void loop() {
+  if (!mqtt.client) {
+    Serial.println("MQTT client is not initialized, please setup mqtt");
+  }
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi is not connected, please setup wifi");
+  }
+
   mqtt.poll(reconnectHandler);
+
   auto cmd = Serial.readStringUntil('\n');
   cmd.trim();
   if (cmd.equalsIgnoreCase("wifi"))
