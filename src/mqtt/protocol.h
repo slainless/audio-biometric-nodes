@@ -1,3 +1,4 @@
+#pragma once
 namespace MqttHeader {
 constexpr char WILL[] = "ded";
 constexpr char VERIFY[] = "verify";

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <SPIFFS.h>
 #include <driver/i2s.h>
 

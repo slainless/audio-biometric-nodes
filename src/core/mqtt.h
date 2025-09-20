@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Arduino.h>
 #include <MqttClient.h>
 #include <WiFi.h>
