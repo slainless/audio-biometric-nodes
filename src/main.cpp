@@ -4,8 +4,8 @@
 #define RECORDER_SCK_PIN 33
 #define RECORDER_FS_PIN 25
 
-#include "core/audio.h"
 #include "core/mqtt.h"
+#include "core/record.h"
 #include "core/serial.h"
 #include "setup/wifi.h"
 
@@ -31,4 +31,6 @@ void loop() {
     return setupWiFi();
   if (cmd.equalsIgnoreCase("mqtt"))
     return configureMqtt(mqtt);
+  if (cmd.equalsIgnoreCase("record"))
+    return recordToMqtt(recorder);
 }
