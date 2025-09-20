@@ -2,6 +2,8 @@
 
 #include <cstring>
 
+int main() { return 0; }
+
 extern "C" {
 const char *ffi_mqttProtocol(const char *protocolKey, const char *key) {
   if (!key)

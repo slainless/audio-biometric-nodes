@@ -13,7 +13,7 @@ import os
 
 # import re
 from pathlib import Path
-from .clangd import build_protocol_accessor
+from .ffi import build_protocol_accessor
 
 current_dir = Path(__file__).parent
 
@@ -21,11 +21,7 @@ MQTT_BROKER_HOST = os.getenv("MQTT_BROKER_HOST") or "localhost"
 MQTT_BROKER_PORT = int(os.getenv("MQTT_BROKER_PORT") or 1883)
 MQTT_KEEPALIVE = int(os.getenv("MQTT_KEEPALIVE") or 60)
 
-# Read topic from C header file
-protocol = build_protocol_accessor(current_dir / "protocol.h")
-
-print(protocol.MqttTopic.RECORDER)
-print(protocol.lib)
+protocol = build_protocol_accessor()
 
 
 # def on_connect(client, userdata, flags, rc):
