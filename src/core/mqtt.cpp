@@ -16,12 +16,6 @@
     return false;                                                              \
   }
 
-#define handleError(code, message)                                             \
-  if (code != 0) {                                                             \
-    Serial.printf("MQTT client error on %s: %d\n", message, code);             \
-    return false;                                                              \
-  }
-
 char brokerHost[64];
 uint16_t brokerPort;
 bool brokerUseSsl;
@@ -54,7 +48,7 @@ void Mqtt::poll(std::function<void()> connectCallback) {
   }
 }
 
-bool Mqtt::publishWill(const char *topic, const char *message) {
+int Mqtt::publishWill(const char *topic, const char *message) {
   isClientReady;
 
   auto res = client->beginWill(topic);
@@ -69,10 +63,10 @@ bool Mqtt::publishWill(const char *topic, const char *message) {
   res = client->endWill();
   handleError(res, "sending will");
 
-  return true;
+  return 0;
 };
 
-bool Mqtt::publishMessage(const char *topic, const char *message) {
+int Mqtt::publishMessage(const char *topic, const char *message) {
   isClientReady;
 
   auto res = client->beginMessage(topic);
@@ -87,10 +81,10 @@ bool Mqtt::publishMessage(const char *topic, const char *message) {
   res = client->endMessage();
   handleError(res, "sending message");
 
-  return true;
+  return 0;
 };
 
-bool Mqtt::publishFragmentHeader(const char *topic, const char *header) {
+int Mqtt::publishFragmentHeader(const char *topic, const char *header) {
   isClientReady;
 
   auto res = client->beginMessage(topic);
@@ -105,11 +99,11 @@ bool Mqtt::publishFragmentHeader(const char *topic, const char *header) {
   res = client->endMessage();
   handleError(res, "sending fragment header");
 
-  return true;
+  return 0;
 };
 
-bool Mqtt::publishFragmentBody(const char *topic, const uint8_t *body,
-                               size_t size) {
+int Mqtt::publishFragmentBody(const char *topic, const uint8_t *body,
+                              size_t size) {
   isClientReady;
 
   auto res = client->beginMessage(topic);
@@ -124,10 +118,10 @@ bool Mqtt::publishFragmentBody(const char *topic, const uint8_t *body,
   res = client->endMessage();
   handleError(res, "sending fragment body");
 
-  return true;
+  return 0;
 };
 
-bool Mqtt::publishFragmentTrailer(const char *topic) {
+int Mqtt::publishFragmentTrailer(const char *topic) {
   isClientReady;
 
   auto res = client->beginMessage(topic);
@@ -139,10 +133,10 @@ bool Mqtt::publishFragmentTrailer(const char *topic) {
   res = client->endMessage();
   handleError(res, "sending fragment trailer");
 
-  return true;
+  return 0;
 };
 
-bool Mqtt::stamp(const char *protocol) {
+int Mqtt::stamp(const char *protocol) {
   isClientReady;
 
   auto res = client->print(protocol);
@@ -153,6 +147,8 @@ bool Mqtt::stamp(const char *protocol) {
 
   res = client->write(identifier, stampSize);
   handleError(res, "stamping identifier");
+
+  return 0;
 };
 
 void configureMqtt(Mqtt &mqtt) {

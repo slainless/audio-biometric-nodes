@@ -6,6 +6,12 @@
 #include <cstdint>
 #include <functional>
 
+#define handleError(code, message)                                             \
+  if (code != 0) {                                                             \
+    Serial.printf("MQTT client error on %s: %d\n", message, code);             \
+    return code;                                                               \
+  }
+
 class Mqtt {
 public:
   std::unique_ptr<MqttClient> client;
@@ -14,11 +20,11 @@ public:
   bool connect(const char *host, uint16_t port, bool secure);
   void poll(std::function<void()> connectCallback = nullptr);
 
-  bool publishWill(const char *topic, const char *message);
-  bool publishMessage(const char *topic, const char *message);
-  bool publishFragmentHeader(const char *topic, const char *header);
-  bool publishFragmentBody(const char *topic, const uint8_t *body, size_t size);
-  bool publishFragmentTrailer(const char *topic);
+  int publishWill(const char *topic, const char *message);
+  int publishMessage(const char *topic, const char *message);
+  int publishFragmentHeader(const char *topic, const char *header);
+  int publishFragmentBody(const char *topic, const uint8_t *body, size_t size);
+  int publishFragmentTrailer(const char *topic);
 
 private:
   const char *identifier;
@@ -27,7 +33,7 @@ private:
   WiFiClient insecureClient;
   WiFiClientSecure secureClient;
 
-  bool stamp(const char *protocol);
+  int stamp(const char *protocol);
 };
 
 void configureMqtt(Mqtt &mqtt);
