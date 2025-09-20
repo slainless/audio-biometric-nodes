@@ -28,11 +28,16 @@ Mqtt::Mqtt(const char *identifier)
 bool Mqtt::connect(const char *host, uint16_t port, bool secure) {
   if (secure) {
     client.reset(new MqttClient(secureClient));
-    return client->connect(host, port);
   } else {
     client.reset(new MqttClient(insecureClient));
-    return client->connect(host, port);
   }
+
+  if (!client->connect(host, port)) {
+    return false;
+  }
+
+  publishWill(MqttTopic::RECORDER, MqttHeader::WILL);
+  return true;
 }
 
 void Mqtt::poll(std::function<void()> connectCallback) {
