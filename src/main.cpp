@@ -10,7 +10,6 @@
 
 #include <Arduino.h>
 #include <I2S.h>
-#include <driver/i2s.h>
 
 Recorder recorder(esp_i2s::I2S_NUM_0, RECORDER_SD_PIN, RECORDER_SCK_PIN,
                   RECORDER_FS_PIN);
