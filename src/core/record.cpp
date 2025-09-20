@@ -2,7 +2,7 @@
 
 #include <SPIFFS.h>
 
-#define WAV_FILE_PATH "recording.wav"
+#define WAV_FILE_PATH "/recording.wav"
 #define RECORDER_BUFFER_SIZE 512
 #define RECORDER_DURATION 5000
 
@@ -28,6 +28,6 @@ void recordToMqtt(Recorder &recorder) {
     return;
   }
 
-  Serial.printf("Recording savet at: %s (size=%u bytes)\n", WAV_FILE_PATH,
+  Serial.printf("Recording saved at: %s (size=%u bytes)\n", WAV_FILE_PATH,
                 (unsigned)read.size());
 }
