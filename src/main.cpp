@@ -10,7 +10,9 @@
 #include "setup/wifi.h"
 
 #include <Arduino.h>
+#include <SPIFFS.h>
 #include <driver/i2s.h>
+
 
 Mqtt mqtt;
 Recorder recorder(I2S_NUM_0, RECORDER_SD_PIN, RECORDER_SCK_PIN,
@@ -19,6 +21,15 @@ Recorder recorder(I2S_NUM_0, RECORDER_SD_PIN, RECORDER_SCK_PIN,
 void setup() {
   Serial.begin(115200);
   recorder.begin(RECORDER_SAMPLE_RATE);
+
+  if (!SPIFFS.begin(true)) {
+    while (true) {
+      Serial.println("These components are missing:");
+      Serial.println("- SPIFFS");
+      Serial.println();
+      delay(1000);
+    }
+  }
 }
 
 void reconnectHandler() { reconnectMqtt(mqtt); }
