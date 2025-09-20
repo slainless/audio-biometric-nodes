@@ -1,6 +1,7 @@
-#include "WiFi.h"
 #include "core/serial.h"
+
 #include <Arduino.h>
+#include <WiFi.h>
 
 #define WAITING_TIME_BEFORE_GIVE_UP 5000
 
