@@ -1,22 +1,23 @@
-#include <I2S.h>
 #include <SPIFFS.h>
+#include <driver/i2s.h>
 
-#define I2S_SAMPLE_PER_BIT 16
-#define I2S_AUDIO_MODE 1
-#define I2S_BYTES_PER_SAMPLE (I2S_SAMPLE_PER_BIT / 8) * I2S_AUDIO_MODE
+#define I2S_BITS_PER_SAMPLE I2S_BITS_PER_SAMPLE_16BIT
+#define I2S_CHANNEL_MODE I2S_CHANNEL_FMT_ONLY_LEFT
+#define I2S_BYTES_PER_SAMPLE (I2S_BITS_PER_SAMPLE / 8) * I2S_CHANNEL_MODE
 
 class Recorder {
 public:
-  Recorder(uint8_t deviceIndex, uint8_t sdInPin, uint8_t sckPin, uint8_t fsPin);
+  Recorder(i2s_port_t deviceIndex, uint8_t sdInPin, uint8_t sckPin,
+           uint8_t fsPin);
 
   void begin(uint32_t sampleRate);
   void end();
-  void readToFile(File &file, size_t bufferSize, unsigned long durationMs);
+  bool readToFile(File &file, size_t bufferSize, unsigned long durationMs);
 
 private:
-  I2SClass i2s;
+  i2s_port_t deviceIndex;
   uint32_t sampleRate;
+  i2s_pin_config_t i2s_pin_config;
 
-  size_t read(uint8_t *buffer, size_t bufferSize);
   void writeWavHeader(File &file, uint32_t totalSamples);
 };
