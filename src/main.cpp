@@ -53,5 +53,5 @@ void loop() {
   if (cmd.equalsIgnoreCase("mqtt"))
     return configureMqtt(mqtt);
   if (cmd.equalsIgnoreCase("record"))
-    return recordToMqtt(recorder);
+    return recordToMqtt(recorder, mqtt);
 }
