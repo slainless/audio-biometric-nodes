@@ -1,17 +1,17 @@
 #include "WiFi.h"
-#include "setup/serial.h"
+#include "core/serial.h"
 #include <Arduino.h>
 
 #define WAITING_TIME_BEFORE_GIVE_UP 5000
 
 void setupWiFi() {
   Serial.print("Access point SSID: ");
-  auto ssid = blockingReadStringUntil('\n');
+  auto ssid = blockingReadStringUntil();
   Serial.print(ssid);
   Serial.println();
 
   Serial.print("Access point password: ");
-  auto password = blockingReadStringUntil('\n');
+  auto password = blockingReadStringUntil();
   Serial.print(password);
   Serial.println();
 

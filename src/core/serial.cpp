@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-String blockingReadStringUntil(char terminator = '\n') {
+String blockingReadStringUntil(char terminator) {
   String result = "";
   while (true) {
     while (Serial.available() == 0) {
