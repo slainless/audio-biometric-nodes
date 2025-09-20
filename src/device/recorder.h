@@ -1,0 +1,1 @@
+#define RECORDER_IDENTIFIER "recorder"
