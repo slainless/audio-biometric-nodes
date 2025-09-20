@@ -8,8 +8,7 @@ Recorder::Recorder(uint8_t deviceIndex, uint8_t sdInPin, uint8_t sckPin,
 
 void Recorder::begin(uint32_t sampleRate) {
   this->sampleRate = sampleRate;
-  i2s.begin(esp_i2s::I2S_MODE_MASTER | esp_i2s::I2S_MODE_RX, sampleRate,
-            I2S_SAMPLE_PER_BIT);
+  i2s.begin(I2S_PHILIPS_MODE, sampleRate, I2S_SAMPLE_PER_BIT);
 }
 
 void Recorder::end() { i2s.end(); }
