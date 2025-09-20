@@ -9,11 +9,13 @@
 #include "core/serial.h"
 #include "setup/wifi.h"
 
+#include "device/recorder.h"
+
 #include <Arduino.h>
 #include <SPIFFS.h>
 #include <driver/i2s.h>
 
-Mqtt mqtt;
+Mqtt mqtt(RECORDER_IDENTIFIER);
 Recorder recorder(I2S_NUM_0, RECORDER_SD_PIN, RECORDER_SCK_PIN,
                   RECORDER_FS_PIN);
 
