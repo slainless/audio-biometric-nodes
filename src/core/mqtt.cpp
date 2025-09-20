@@ -25,11 +25,14 @@ bool Mqtt::connect(const char *host, uint16_t port, bool secure) {
 }
 
 void Mqtt::poll(std::function<void()> connectCallback) {
-  if (!client->connected()) {
-    connectCallback();
-  }
-
   if (client) {
+    if (!client->connected()) {
+      if (connectCallback) {
+        Serial.println("MQTT client not connected, calling connect callback");
+        connectCallback();
+      }
+    }
+
     client->poll();
   }
 }
