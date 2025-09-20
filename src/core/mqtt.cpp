@@ -159,15 +159,15 @@ int Mqtt::stamp(const char *protocol) {
 void configureMqtt(Mqtt &mqtt) {
   Serial.print("Broker host: ");
   auto host = blockingReadStringUntil('\n');
-  Serial.print(host);
+  Serial.println(host);
 
   Serial.print("Broker port: ");
   auto port = blockingReadStringUntil('\n');
-  Serial.print(port);
+  Serial.println(port);
 
   Serial.print("Use SSL?: (y/n) ");
   auto useSsl = blockingReadStringUntil('\n');
-  Serial.print(useSsl);
+  Serial.println(useSsl);
 
   host.trim();
   port.trim();
