@@ -39,11 +39,12 @@ bool Recorder::readToFile(File &file, size_t bufferSize,
 
   size_t targetBytes = sampleRate * I2S_BYTES_PER_SAMPLE * (durationMs / 1000);
   size_t loops = targetBytes / bufferSize;
+  size_t normalizedTargetBytes = loops * bufferSize;
 
-  Serial.printf("Reading %u bytes in %u ms (Read loops: %u)\n", targetBytes,
-                durationMs, loops);
+  Serial.printf("Reading %u bytes in %u ms (Read loops: %u)\n",
+                normalizedTargetBytes, durationMs, loops);
 
-  writeWavHeader(file, targetBytes);
+  writeWavHeader(file, normalizedTargetBytes);
   for (size_t i = 0; i < loops; i++) {
     esp_err_t r = i2s_read(deviceIndex, buffer.data(), bufferSize, &bytesRead,
                            portMAX_DELAY);
