@@ -56,7 +56,7 @@ void Mqtt::poll(std::function<void()> connectCallback) {
 int Mqtt::publishWill(const char *topic, const char *message) {
   isClientReady;
 
-  auto res = client->beginWill(topic);
+  auto res = client->beginWill(topic, false, 0);
   handleError(res, "starting will writing");
 
   res = stamp(MqttMessageType::MESSAGE);
@@ -150,7 +150,7 @@ int Mqtt::stamp(const char *protocol) {
   res = client->write(stampSize);
   handleError(res, "stamping identifier size");
 
-  res = client->write(identifier, stampSize);
+  res = client->write(reinterpret_cast<const uint8_t *>(identifier), stampSize);
   handleError(res, "stamping identifier");
 
   return 0;

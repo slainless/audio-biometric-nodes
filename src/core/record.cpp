@@ -9,6 +9,27 @@
 #define RECORDER_BUFFER_SIZE 512
 #define RECORDER_DURATION 5000
 
+int publishRecordingToMqtt(File &file, Mqtt &mqtt, uint32_t bufferSize) {
+  size_t bytesRead;
+  std::vector<uint8_t> buffer(bufferSize);
+
+  auto res =
+      mqtt.publishFragmentHeader(MqttTopic::RECORDER, MqttHeader::VERIFY);
+  handleError(res, "publishing recording fragment header");
+
+  while (file.available()) {
+    file.read(buffer.data(), bufferSize);
+    res = mqtt.publishFragmentBody(MqttTopic::RECORDER, buffer.data(),
+                                   bufferSize);
+    handleError(res, "publishing recording fragment body");
+  }
+
+  res = mqtt.publishFragmentTrailer(MqttTopic::RECORDER);
+  handleError(res, "publishing recording fragment trailer");
+
+  return 0;
+}
+
 void recordToMqtt(Recorder &recorder, Mqtt &mqtt) {
   if (!mqtt.client) {
     Serial.println("MQTT client is not initialized, please setup mqtt");
@@ -49,25 +70,4 @@ void recordToMqtt(Recorder &recorder, Mqtt &mqtt) {
 
   Serial.println("Recording published to MQTT");
   read.close();
-}
-
-int publishRecordingToMqtt(File &file, Mqtt &mqtt, uint32_t bufferSize) {
-  size_t bytesRead;
-  std::vector<uint8_t> buffer(bufferSize);
-
-  auto res =
-      mqtt.publishFragmentHeader(MqttTopic::RECORDER, MqttHeader::VERIFY);
-  handleError(res, "publishing recording fragment header");
-
-  while (file.available()) {
-    file.read(buffer.data(), bufferSize);
-    res = mqtt.publishFragmentBody(MqttTopic::RECORDER, buffer.data(),
-                                   bufferSize);
-    handleError(res, "publishing recording fragment body");
-  }
-
-  res = mqtt.publishFragmentTrailer(MqttTopic::RECORDER);
-  handleError(res, "publishing recording fragment trailer");
-
-  return 0;
 }
