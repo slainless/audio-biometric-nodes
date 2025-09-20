@@ -38,5 +38,6 @@ private:
   int stamp(const char *protocol);
 };
 
+void setupMqtt(Mqtt &mqtt);
 void configureMqtt(Mqtt &mqtt);
 void reconnectMqtt(Mqtt &mqtt);

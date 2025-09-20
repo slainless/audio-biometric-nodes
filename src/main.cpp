@@ -32,6 +32,7 @@ void setup() {
   }
 
   setupWiFi();
+  setupMqtt(mqtt);
 }
 
 void reconnectHandler() { reconnectMqtt(mqtt); }

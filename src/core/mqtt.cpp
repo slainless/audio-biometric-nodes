@@ -1,4 +1,5 @@
 #include "core/mqtt.h"
+#include "core/flash.h"
 #include "core/serial.h"
 #include "mqtt/protocol.h"
 
@@ -10,15 +11,21 @@
 #include <cstring>
 #include <functional>
 
+#define MQTT_CONFIG_PATH "/mqtt.bin"
+
 #define isClientReady                                                          \
   if (!client) {                                                               \
     Serial.println("MQTT client is not initialized, please setup mqtt");       \
     return false;                                                              \
   }
 
-char brokerHost[64];
-uint16_t brokerPort;
-bool brokerUseSsl;
+struct MqttConfig {
+  char host[64];
+  uint16_t port;
+  bool useSsl;
+};
+
+MqttConfig mqttConfig;
 
 Mqtt::Mqtt(const char *identifier)
     : identifier(identifier), stampSize(strlen(identifier)) {
@@ -156,6 +163,29 @@ int Mqtt::stamp(const char *protocol) {
   return 0;
 };
 
+void reconnectMqtt(Mqtt &mqtt) {
+  if (mqttConfig.host[0] == '\0') {
+    Serial.println("MQTT broker host is not set, skipping reconnect");
+    return;
+  }
+
+  Serial.printf("Connecting to %s:%d with SSL: %b\n", mqttConfig.host,
+                mqttConfig.port, mqttConfig.useSsl);
+  if (!mqtt.connect(mqttConfig.host, mqttConfig.port, mqttConfig.useSsl)) {
+    Serial.print("MQTT connection failed! Error code = ");
+    Serial.println(mqtt.client->connectError());
+  }
+};
+
+void setupMqtt(Mqtt &mqtt) {
+  Serial.println("Loading Mqtt configuration from flash");
+  if (load(MQTT_CONFIG_PATH, reinterpret_cast<unsigned char *>(&mqttConfig),
+           sizeof(MqttConfig))) {
+    Serial.println("Mqtt configuration loaded");
+    reconnectMqtt(mqtt);
+  }
+}
+
 void configureMqtt(Mqtt &mqtt) {
   Serial.print("Broker host: ");
   auto host = blockingReadStringUntil('\n');
@@ -173,21 +203,17 @@ void configureMqtt(Mqtt &mqtt) {
   port.trim();
   useSsl.trim();
 
-  host.toCharArray(brokerHost, sizeof(brokerHost));
-  brokerPort = port.toInt();
-  brokerUseSsl = useSsl.equalsIgnoreCase("y");
-};
+  host.toCharArray(mqttConfig.host, sizeof(mqttConfig.host));
+  mqttConfig.port = port.toInt();
+  mqttConfig.useSsl = useSsl.equalsIgnoreCase("y");
 
-void reconnectMqtt(Mqtt &mqtt) {
-  if (brokerHost[0] == '\0') {
-    Serial.println("MQTT broker host is not set, skipping reconnect");
-    return;
+  Serial.println("Saving Mqtt configuration to flash");
+  if (store(MQTT_CONFIG_PATH, reinterpret_cast<unsigned char *>(&mqttConfig),
+            sizeof(MqttConfig))) {
+    Serial.println("Mqtt configuration saved");
+  } else {
+    Serial.println("Failed to save Mqtt configuration to flash");
   }
 
-  Serial.printf("Connecting to %s:%d with SSL: %b\n", brokerHost, brokerPort,
-                brokerUseSsl);
-  if (!mqtt.connect(brokerHost, brokerPort, brokerUseSsl)) {
-    Serial.print("MQTT connection failed! Error code = ");
-    Serial.println(mqtt.client->connectError());
-  }
+  reconnectMqtt(mqtt);
 };
