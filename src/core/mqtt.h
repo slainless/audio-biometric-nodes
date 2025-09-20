@@ -2,6 +2,7 @@
 #include <MqttClient.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
+#include <functional>
 
 class Mqtt {
 public:
@@ -9,6 +10,7 @@ public:
   Mqtt();
 
   bool connect(const char *host, uint16_t port, bool secure);
+  void poll(std::function<void()> connectCallback = nullptr);
 
 private:
   WiFiClient insecureClient;

@@ -6,6 +6,8 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 
+#include <functional>
+
 char brokerHost[64];
 uint16_t brokerPort;
 bool brokerUseSsl;
@@ -19,6 +21,16 @@ bool Mqtt::connect(const char *host, uint16_t port, bool secure) {
   } else {
     client.reset(new MqttClient(insecureClient));
     return client->connect(host, port);
+  }
+}
+
+void Mqtt::poll(std::function<void()> connectCallback) {
+  if (!client->connected()) {
+    connectCallback();
+  }
+
+  if (client) {
+    client->poll();
   }
 }
 

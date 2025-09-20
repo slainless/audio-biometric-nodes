@@ -21,8 +21,11 @@ void setup() {
   recorder.begin(RECORDER_SAMPLE_RATE);
 }
 
+void reconnectHandler() { reconnectMqtt(mqtt); }
+
 void loop() {
-  auto cmd = blockingReadStringUntil();
+  mqtt.poll(reconnectHandler);
+  auto cmd = Serial.readStringUntil('\n');
   cmd.trim();
   if (cmd.equalsIgnoreCase("wifi"))
     return setupWiFi();
