@@ -6,7 +6,6 @@
 
 #include "core/mqtt.h"
 #include "core/record.h"
-#include "core/serial.h"
 #include "setup/wifi.h"
 
 #include "device/recorder.h"
@@ -31,6 +30,8 @@ void setup() {
       delay(1000);
     }
   }
+
+  setupWiFi();
 }
 
 void reconnectHandler() { reconnectMqtt(mqtt); }
@@ -49,7 +50,7 @@ void loop() {
   auto cmd = Serial.readStringUntil('\n');
   cmd.trim();
   if (cmd.equalsIgnoreCase("wifi"))
-    return setupWiFi();
+    return configureWiFi();
   if (cmd.equalsIgnoreCase("mqtt"))
     return configureMqtt(mqtt);
   if (cmd.equalsIgnoreCase("record"))
