@@ -4,7 +4,7 @@ from cffi import FFI
 current_dir = Path(__file__).parent
 
 
-def build_protocol_accessor():
+def _build_protocol_accessor():
     ffi = FFI()
 
     ffi.cdef("""
@@ -29,3 +29,6 @@ class _AccessorWrapper:
                 return that.ffi.string(result).decode()
 
         return _Wrapper()
+
+
+Protocol = _build_protocol_accessor()

@@ -15,7 +15,7 @@ import os
 
 import re
 from pathlib import Path
-from .ffi import build_protocol_accessor
+from .core.ffi import Protocol
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -26,9 +26,7 @@ MQTT_BROKER_HOST = os.getenv("MQTT_BROKER_HOST") or "localhost"
 MQTT_BROKER_PORT = int(os.getenv("MQTT_BROKER_PORT") or 1883)
 MQTT_KEEPALIVE = int(os.getenv("MQTT_KEEPALIVE") or 60)
 
-protocol = build_protocol_accessor()
-
-RECORDER_TOPIC = protocol.MqttTopic.RECORDER
+RECORDER_TOPIC = Protocol.MqttTopic.RECORDER
 
 
 def on_connect(
