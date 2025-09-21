@@ -17,7 +17,7 @@ class MessageAssembler:
         self._lock = Lock()
         self._executor = ThreadPoolExecutor()
 
-        def on_assembled(self, id: str, message: bytes):
+        def on_assembled(id: str, data: bytes):
             pass
 
         self.on_assembled = on_assembled

@@ -8,8 +8,11 @@ from textwrap import dedent
 import logging
 
 from .message import MessageAssembler
+from .ffi import Protocol
 
 logger = logging.getLogger(__name__)
+
+MESSAGE_TYPE = Protocol.MqttMessageType
 
 
 class BiometricMqttServer:
@@ -34,6 +37,8 @@ class BiometricMqttServer:
         self._client.on_disconnect = self._on_disconnect
         self._client.on_subscribe = self._on_subscribe
         self._client.on_message = self._on_message
+
+        self._message_assembler.on_assembled = self._on_verify
 
     def start_forever(self):
         self._client.connect(self._broker_host, self._broker_port, self._keepalive)
@@ -104,4 +109,33 @@ class BiometricMqttServer:
     def _on_message(self, client: mqtt.Client, userdata: Any, msg: MQTTMessage):
         """Callback for when a message is received."""
 
-        logger.info(f"Payload received:\n{msg.payload}")
+        if len(msg.payload) < 6:
+            logger.error(f"Payload is too short: {len(msg.payload)}")
+            return
+
+        type = msg.payload[0:4].decode()
+        if type not in MESSAGE_TYPE.Values:
+            logger.error(f"Invalid message type: {type}")
+            return
+
+        id_size = msg.payload[4]
+        if len(msg.payload) < 5 + id_size:
+            logger.error(
+                f"Payload is too short, expecting at minimum: {5 + id_size}, got: {len(msg.payload)}"
+            )
+            return
+
+        id = msg.payload[5 : 5 + id_size].decode()
+        data = msg.payload[5 + id_size :]
+
+        if type == MESSAGE_TYPE.MESSAGE:
+            logger.info(f"Message received from {id}:\n{data.decode()}")
+            return
+
+        logger.info(f"Message received from {id} with type: {type}")
+        self._message_assembler.add_message(id, type, data)
+
+    def _on_verify(self, id: str, data: bytes):
+        """Callback for when a message is assembled."""
+        logger.info(f"Message assembled: {id}")
+        logger.info(f"Data: {data}")
