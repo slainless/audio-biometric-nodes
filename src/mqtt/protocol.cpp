@@ -9,8 +9,9 @@ const char *ffi_mqttProtocol(const char *protocolKey, const char *key) {
   if (!key)
     return nullptr;
 
+#define PASS(name) #name
 #define _MQP(header, list)                                                     \
-  if (strcmp(protocolKey, #header) == 0) {                                     \
+  if (strcmp(protocolKey, PASS(header)) == 0) {                                \
     namespace protocol = header;                                               \
     list return nullptr;                                                       \
   }
@@ -31,9 +32,9 @@ const char *const *ffi_mqttProtocolList(const char *protocolKey) {
     return nullptr;
 
 #define JOIN(a, b) a##b
-#define LITERAL(name) #name
+#define PASS(name) #name
 #define _MQP(header, list)                                                     \
-  if (strcmp(protocolKey, LITERAL(header)) == 0) {                             \
+  if (strcmp(protocolKey, PASS(header)) == 0) {                                \
     return JOIN(header, List);                                                 \
   }
 
