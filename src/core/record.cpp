@@ -17,12 +17,17 @@ int publishRecordingToMqtt(File &file, Mqtt &mqtt, uint32_t bufferSize) {
       mqtt.publishFragmentHeader(MqttTopic::RECORDER, MqttHeader::VERIFY);
   handleError(res, "publishing recording fragment header");
 
+  size_t totalBytesRead = 0;
   while (file.available()) {
-    file.read(buffer.data(), bufferSize);
-    res = mqtt.publishFragmentBody(MqttTopic::RECORDER, buffer.data(),
-                                   bufferSize);
+    auto bytesRead = file.read(buffer.data(), bufferSize);
+    totalBytesRead += bytesRead;
+
+    res =
+        mqtt.publishFragmentBody(MqttTopic::RECORDER, buffer.data(), bytesRead);
     handleError(res, "publishing recording fragment body");
   }
+
+  Serial.printf("Total bytes read from file: %u\n", totalBytesRead);
 
   res = mqtt.publishFragmentTrailer(MqttTopic::RECORDER);
   handleError(res, "publishing recording fragment trailer");
