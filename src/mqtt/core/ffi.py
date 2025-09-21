@@ -27,10 +27,10 @@ class _AccessorWrapper:
 
         class _Wrapper:
             @cached_property
-            def Values(self) -> list[str] | None:
+            def Values(self) -> list[str]:
                 result = that.lib.ffi_mqttProtocolList(protocol_key.encode())
                 if result == FFI.NULL:
-                    return None
+                    raise ValueError(f"Protocol list for {protocol_key} is not found")
 
                 i = 0
                 strings = []
@@ -41,12 +41,15 @@ class _AccessorWrapper:
                 return strings
 
             @cache
-            def __getattr__(self, key: str) -> str | None:
+            def _cached_getter(self, key: str) -> str:
                 result = that.lib.ffi_mqttProtocol(protocol_key.encode(), key.encode())
                 if result == FFI.NULL:
-                    return None
+                    raise ValueError(f"Protocol for {protocol_key}:{key} is not found")
 
                 return that.ffi.string(result).decode()
+
+            def __getattr__(self, key: str) -> str:
+                return self._cached_getter(key)
 
         return _Wrapper()
 
