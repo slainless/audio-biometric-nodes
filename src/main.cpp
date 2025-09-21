@@ -2,7 +2,7 @@
 
 #define RECORDER_SD_PIN 32
 #define RECORDER_SCK_PIN 33
-#define RECORDER_FS_PIN 25
+#define RECORDER_WS_PIN 25
 
 #include "core/mqtt.h"
 #include "core/record.h"
@@ -16,7 +16,7 @@
 
 Mqtt mqtt(RECORDER_IDENTIFIER);
 Recorder recorder(I2S_NUM_0, RECORDER_SD_PIN, RECORDER_SCK_PIN,
-                  RECORDER_FS_PIN);
+                  RECORDER_WS_PIN);
 
 void setup() {
   Serial.begin(115200);

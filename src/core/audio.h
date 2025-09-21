@@ -9,8 +9,7 @@
 
 class Recorder {
 public:
-  Recorder(i2s_port_t deviceIndex, uint8_t sdInPin, uint8_t sckPin,
-           uint8_t fsPin);
+  Recorder(i2s_port_t deviceIndex, int sdInPin, int sckPin, int wsPin);
 
   void begin(uint32_t sampleRate);
   void end();

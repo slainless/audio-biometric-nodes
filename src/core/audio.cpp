@@ -3,11 +3,10 @@
 #include <driver/i2s.h>
 #include <vector>
 
-Recorder::Recorder(i2s_port_t deviceIndex, uint8_t sdInPin, uint8_t sckPin,
-                   uint8_t fsPin)
+Recorder::Recorder(i2s_port_t deviceIndex, int sdInPin, int sckPin, int wsPin)
     : i2s_pin_config({
           .bck_io_num = sckPin,
-          .ws_io_num = fsPin,
+          .ws_io_num = wsPin,
           .data_out_num = I2S_PIN_NO_CHANGE,
           .data_in_num = sdInPin,
       }),
