@@ -37,7 +37,11 @@ class BiometricMqttServer:
         self._client.on_message = self._on_message
 
         self._message_assembler.on_assembled = self._on_verify
-        self.on_verify = self._on_verify
+
+        def default_on_verify(id: str, data: bytes):
+            pass
+
+        self.on_verify = default_on_verify
 
     def start_forever(self):
         self._client.connect(self._broker_host, self._broker_port, self._keepalive)
@@ -144,4 +148,5 @@ class BiometricMqttServer:
 
     def _on_verify(self, id: str, data: bytes):
         """Callback for when a message is assembled."""
-        logger.info(f"Message assembled:\n{data}")
+        logger.info("Message assembled, calling callback")
+        self.on_verify(id, data)
