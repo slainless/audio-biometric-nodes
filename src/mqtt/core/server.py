@@ -12,8 +12,6 @@ from .ffi import Protocol
 
 logger = logging.getLogger(__name__)
 
-MESSAGE_TYPE = Protocol.MqttMessageType
-
 
 class BiometricMqttServer:
     def __init__(
@@ -114,7 +112,7 @@ class BiometricMqttServer:
             return
 
         type = msg.payload[0:4].decode()
-        if type not in MESSAGE_TYPE.Values:
+        if type not in Protocol.MqttMessageType.Values:
             logger.error(f"Invalid message type: {type}")
             return
 
@@ -128,14 +126,21 @@ class BiometricMqttServer:
         id = msg.payload[5 : 5 + id_size].decode()
         data = msg.payload[5 + id_size :]
 
-        if type == MESSAGE_TYPE.MESSAGE:
+        if type == Protocol.MqttMessageType.MESSAGE:
             logger.info(f"Message received from {id}:\n{data.decode()}")
             return
+
+        if type == Protocol.MqttMessageType.FRAGMENT_HEADER:
+            header = data.decode()
+            if header not in Protocol.MqttHeader.Values:
+                logger.error(f"Invalid header type received: {header}")
+                return
+
+            self._message_assembler.add_message(id, type, bytes())
 
         logger.info(f"Message received from {id} with type: {type}")
         self._message_assembler.add_message(id, type, data)
 
     def _on_verify(self, id: str, data: bytes):
         """Callback for when a message is assembled."""
-        logger.info(f"Message assembled: {id}")
-        logger.info(f"Data: {data}")
+        logger.info(f"Message assembled:\n{data}")

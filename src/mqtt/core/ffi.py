@@ -22,7 +22,8 @@ class _AccessorWrapper:
         self.lib = lib
         self.ffi = ffi
 
-    def __getattr__(self, protocol_key: str):
+    @cache
+    def _cached_getter(self, protocol_key: str):
         that = self
 
         class _Wrapper:
@@ -52,6 +53,9 @@ class _AccessorWrapper:
                 return self._cached_getter(key)
 
         return _Wrapper()
+
+    def __getattr__(self, protocol_key: str):
+        return self._cached_getter(protocol_key)
 
 
 Protocol = _build_protocol_accessor()

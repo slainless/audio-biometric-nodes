@@ -40,7 +40,6 @@ class MessageAssembler:
                         buffer.clear()
 
                     types.append(type)
-                    buffer.extend(message)
                 case Protocol.MqttMessageType.FRAGMENT_BODY:
                     if len(types) == 0:
                         logger.warning(
