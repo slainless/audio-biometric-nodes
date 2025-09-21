@@ -37,7 +37,7 @@ bool Recorder::readToFile(File &file, size_t bufferSize,
   size_t bytesRead;
   std::vector<uint8_t> buffer(bufferSize);
 
-  size_t targetBytes = sampleRate * I2S_BYTES_PER_SAMPLE * (durationMs / 1000);
+  size_t targetBytes = sampleRate * I2S_BYTES_PER_SAMPLE * durationMs / 1000;
   size_t loops = targetBytes / bufferSize;
   size_t normalizedTargetBytes = loops * bufferSize;
 
