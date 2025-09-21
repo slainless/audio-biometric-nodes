@@ -27,6 +27,12 @@ def main():
         MQTT_BROKER_HOST, MQTT_BROKER_PORT, RECORDER_TOPIC, MQTT_KEEPALIVE
     )
 
+    def on_verify(id: str, data: bytes):
+        with open(f"verify_{id}.wav", "wb") as f:
+            f.write(data)
+
+    client.on_verify = on_verify
+
     try:
         client.start_forever()
     except KeyboardInterrupt:

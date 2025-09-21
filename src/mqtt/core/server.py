@@ -37,6 +37,7 @@ class BiometricMqttServer:
         self._client.on_message = self._on_message
 
         self._message_assembler.on_assembled = self._on_verify
+        self.on_verify = self._on_verify
 
     def start_forever(self):
         self._client.connect(self._broker_host, self._broker_port, self._keepalive)
