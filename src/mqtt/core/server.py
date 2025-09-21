@@ -131,8 +131,15 @@ class BiometricMqttServer:
         id = msg.payload[5 : 5 + id_size].decode()
         data = msg.payload[5 + id_size :]
 
+        metadata = dict(
+            id=id,
+            type=type,
+            packet_size=len(msg.payload),
+            data_size=len(data),
+        )
+
         if type == Protocol.MqttMessageType.MESSAGE:
-            logger.info(f"Message received from {id}:\n{data.decode()}")
+            logger.info(f"Message received:\n{metadata}\nData:\n{data.decode()}")
             return
 
         if type == Protocol.MqttMessageType.FRAGMENT_HEADER:
@@ -141,12 +148,14 @@ class BiometricMqttServer:
                 logger.error(f"Invalid header type received: {header}")
                 return
 
+            logger.info(f"Fragment header received: {metadata}")
             self._message_assembler.add_message(id, type, bytes())
+            return
 
-        logger.info(f"Message received from {id} with type: {type}")
+        logger.info(f"Fragmented message received: {metadata}")
         self._message_assembler.add_message(id, type, data)
 
     def _on_verify(self, id: str, data: bytes):
         """Callback for when a message is assembled."""
-        logger.info("Message assembled, calling callback")
+        logger.info(f"Message assembled, size: {len(data)}. Calling callback...")
         self.on_verify(id, data)
