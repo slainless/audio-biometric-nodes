@@ -12,13 +12,15 @@ const char *const *ffi_mqttProtocolList(const char *protocolKey);
 #define MQTT_PROTOCOL                                                          \
   _MQEXPAND(MQTT_HEADER)                                                       \
   _MQEXPAND(MQTT_MESSAGE_TYPE)                                                 \
-  _MQEXPAND(MQTT_TOPIC)
+  _MQEXPAND(MQTT_TOPIC)                                                        \
+  _MQEXPAND(MQTT_CONTROLLER_COMMAND)
 
 /* ------------------------------ Protocol Key ------------------------------ */
 
 #define MQTT_HEADER_KEY MqttHeader
 #define MQTT_MESSAGE_TYPE_KEY MqttMessageType
 #define MQTT_TOPIC_KEY MqttTopic
+#define MQTT_CONTROLLER_COMMAND_KEY MqttControllerCommand
 
 /* ------------------------------ Protocol List ----------------------------- */
 
@@ -35,6 +37,10 @@ const char *const *ffi_mqttProtocolList(const char *protocolKey);
 #define MQTT_TOPIC_LIST                                                        \
   _MQX(RECORDER, "audio_biometric/slainless/device/recorder")                  \
   _MQX(CONTROLLER, "audio_biometric/slainless/device/controller")
+
+#define MQTT_CONTROLLER_COMMAND_LIST                                           \
+  _MQX(ON, "on")                                                               \
+  _MQX(OFF, "off")
 
 /* -------------------------------------------------------------------------- */
 /*                              End of Definition                             */
