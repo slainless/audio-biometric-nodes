@@ -9,25 +9,40 @@ const char *ffi_mqttProtocol(const char *protocolKey, const char *key) {
   if (!key)
     return nullptr;
 
-#define X(name, value)                                                         \
-  if (strcmp(key, #name) == 0)                                                 \
-    return PX::name;
-
-  if (strcmp(protocolKey, "MqttHeader") == 0) {
-#define PX MqttHeader
-    MQTT_HEADER
-#undef PX
-  } else if (strcmp(protocolKey, "MqttMessageType") == 0) {
-#define PX MqttMessageType
-    MQTT_MESSAGE_TYPE
-#undef PX
-  } else if (strcmp(protocolKey, "MqttTopic") == 0) {
-#define PX MqttTopic
-    MQTT_TOPIC
-#undef PX
+#define _MQP(header, list)                                                     \
+  if (strcmp(protocolKey, #header) == 0) {                                     \
+    namespace protocol = header;                                               \
+    list return nullptr;                                                       \
   }
+#define _MQX(name, value)                                                      \
+  if (strcmp(key, #name) == 0)                                                 \
+    return protocol::name;
+
+  MQTT_PROTOCOL
+
+#undef _MQP
+#undef _MQX
+
+  return nullptr;
+}
+
+const char *const *ffi_mqttProtocolList(const char *protocolKey) {
+  if (!protocolKey)
+    return nullptr;
+
+#define JOIN(a, b) a##b
+#define LITERAL(name) #name
+#define _MQP(header, list)                                                     \
+  if (strcmp(protocolKey, LITERAL(header)) == 0) {                             \
+    return JOIN(header, List);                                                 \
+  }
+
+  MQTT_PROTOCOL
+
+#undef _MQP
+#undef JOIN
+#undef LITERAL
+
   return nullptr;
 }
 }
-
-#undef X

@@ -1,33 +1,74 @@
 #pragma once
 
-#define MQTT_HEADER                                                            \
-  X(WILL, "ded")                                                               \
-  X(VERIFY, "verify")
-
-#define MQTT_MESSAGE_TYPE                                                      \
-  X(MESSAGE, "msg ")                                                           \
-  X(FRAGMENT_HEADER, "head")                                                   \
-  X(FRAGMENT_BODY, "frag")                                                     \
-  X(FRAGMENT_TRAILER, "end ")
-
-#define MQTT_TOPIC                                                             \
-  X(RECORDER, "audio_biometric/slainless/device/recorder")                     \
-  X(CONTROLLER, "audio_biometric/slainless/device/controller")
-
-#define X(name, value) constexpr char name[] = value;
-namespace MqttHeader {
-MQTT_HEADER
-} // namespace MqttHeader
-
-namespace MqttMessageType {
-MQTT_MESSAGE_TYPE
-} // namespace MqttMessageType
-
-namespace MqttTopic {
-MQTT_TOPIC
-} // namespace MqttTopic
-#undef X
-
 extern "C" {
 const char *ffi_mqttProtocol(const char *protocolKey, const char *key);
+const char *const *ffi_mqttProtocolList(const char *protocolKey);
 }
+
+/* -------------------------------------------------------------------------- */
+/*                             Protocol Definition                            */
+/* -------------------------------------------------------------------------- */
+
+#define MQTT_PROTOCOL                                                          \
+  _MQEXPAND(MQTT_HEADER)                                                       \
+  _MQEXPAND(MQTT_MESSAGE_TYPE)                                                 \
+  _MQEXPAND(MQTT_TOPIC)
+
+/* ------------------------------ Protocol Key ------------------------------ */
+
+#define MQTT_HEADER_KEY MqttHeader
+#define MQTT_MESSAGE_TYPE_KEY MqttMessageType
+#define MQTT_TOPIC_KEY MqttTopic
+
+/* ------------------------------ Protocol List ----------------------------- */
+
+#define MQTT_HEADER_LIST                                                       \
+  _MQX(WILL, "ded")                                                            \
+  _MQX(VERIFY, "verify")
+
+#define MQTT_MESSAGE_TYPE_LIST                                                 \
+  _MQX(MESSAGE, "msg ")                                                        \
+  _MQX(FRAGMENT_HEADER, "head")                                                \
+  _MQX(FRAGMENT_BODY, "frag")                                                  \
+  _MQX(FRAGMENT_TRAILER, "end ")
+
+#define MQTT_TOPIC_LIST                                                        \
+  _MQX(RECORDER, "audio_biometric/slainless/device/recorder")                  \
+  _MQX(CONTROLLER, "audio_biometric/slainless/device/controller")
+
+/* -------------------------------------------------------------------------- */
+/*                              End of Definition                             */
+/* -------------------------------------------------------------------------- */
+
+#define _MQEXPAND(header) _MQP(header##_KEY, header##_LIST)
+#define LITERAL(name, ...) JOIN(name, __VA_ARGS__)
+#define JOIN(name, suffix) name##suffix
+
+/* --------------------------- Protocol namespace --------------------------- */
+
+#define _MQP(header, list)                                                     \
+  namespace LITERAL(header) {                                                  \
+  list                                                                         \
+  }
+#define _MQX(name, value) constexpr char name[] = value;
+
+MQTT_PROTOCOL
+
+#undef _MQX
+#undef _MQP
+
+/* --------------------------- Protocol value list -------------------------- */
+
+#define _MQP(header, list)                                                     \
+  static const char *const LITERAL(header, List)[] = {list nullptr};
+#define _MQX(name, value) value,
+
+MQTT_PROTOCOL
+
+#undef _MQX
+#undef _MQP
+
+/* --------------------------------- Cleanup -------------------------------- */
+
+#undef LITERAL
+#undef JOIN
