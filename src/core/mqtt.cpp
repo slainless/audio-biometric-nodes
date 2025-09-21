@@ -63,17 +63,10 @@ void Mqtt::poll(std::function<void()> connectCallback) {
 int Mqtt::publishWill(const char *topic, const char *message) {
   isClientReady;
 
-  auto res = client->beginWill(topic, false, 0);
-  handleError(res, "starting will writing");
-
-  res = stamp(MqttMessageType::MESSAGE);
-  handleError(res, "stamping will message");
-
-  res = client->print(MqttHeader::WILL);
-  handleError(res, "writing will message");
-
-  res = client->endWill();
-  handleError(res, "sending will");
+  client->beginWill(topic, false, 0);
+  stamp(MqttMessageType::MESSAGE);
+  client->print(MqttHeader::WILL);
+  client->endWill();
 
   return 0;
 };
@@ -81,17 +74,10 @@ int Mqtt::publishWill(const char *topic, const char *message) {
 int Mqtt::publishMessage(const char *topic, const char *message) {
   isClientReady;
 
-  auto res = client->beginMessage(topic);
-  handleError(res, "starting message writing");
-
-  res = stamp(MqttMessageType::MESSAGE);
-  handleError(res, "stamping will message");
-
-  res = client->print(message);
-  handleError(res, "writing message");
-
-  res = client->endMessage();
-  handleError(res, "sending message");
+  client->beginMessage(topic);
+  stamp(MqttMessageType::MESSAGE);
+  client->print(message);
+  client->endMessage();
 
   return 0;
 };
@@ -99,17 +85,10 @@ int Mqtt::publishMessage(const char *topic, const char *message) {
 int Mqtt::publishFragmentHeader(const char *topic, const char *header) {
   isClientReady;
 
-  auto res = client->beginMessage(topic);
-  handleError(res, "starting fragment header writing");
-
-  res = stamp(MqttMessageType::FRAGMENT_HEADER);
-  handleError(res, "stamping fragment header");
-
-  res = client->print(header);
-  handleError(res, "writing fragment header");
-
-  res = client->endMessage();
-  handleError(res, "sending fragment header");
+  client->beginMessage(topic);
+  stamp(MqttMessageType::FRAGMENT_HEADER);
+  client->print(header);
+  client->endMessage();
 
   return 0;
 };
@@ -118,17 +97,10 @@ int Mqtt::publishFragmentBody(const char *topic, const uint8_t *body,
                               size_t size) {
   isClientReady;
 
-  auto res = client->beginMessage(topic);
-  handleError(res, "starting fragment body writing");
-
-  res = stamp(MqttMessageType::FRAGMENT_BODY);
-  handleError(res, "stamping fragment body");
-
-  res = client->write(body, size);
-  handleError(res, "writing fragment body");
-
-  res = client->endMessage();
-  handleError(res, "sending fragment body");
+  client->beginMessage(topic);
+  stamp(MqttMessageType::FRAGMENT_BODY);
+  client->write(body, size);
+  client->endMessage();
 
   return 0;
 };
@@ -136,14 +108,9 @@ int Mqtt::publishFragmentBody(const char *topic, const uint8_t *body,
 int Mqtt::publishFragmentTrailer(const char *topic) {
   isClientReady;
 
-  auto res = client->beginMessage(topic);
-  handleError(res, "starting fragment trailer writing");
-
-  res = stamp(MqttMessageType::FRAGMENT_TRAILER);
-  handleError(res, "stamping fragment trailer");
-
-  res = client->endMessage();
-  handleError(res, "sending fragment trailer");
+  client->beginMessage(topic);
+  stamp(MqttMessageType::FRAGMENT_TRAILER);
+  client->endMessage();
 
   return 0;
 };
@@ -151,14 +118,9 @@ int Mqtt::publishFragmentTrailer(const char *topic) {
 int Mqtt::stamp(const char *protocol) {
   isClientReady;
 
-  auto res = client->print(protocol);
-  handleError(res, "stamping protocol");
-
-  res = client->write(stampSize);
-  handleError(res, "stamping identifier size");
-
-  res = client->write(reinterpret_cast<const uint8_t *>(identifier), stampSize);
-  handleError(res, "stamping identifier");
+  client->print(protocol);
+  client->write(stampSize);
+  client->write(reinterpret_cast<const uint8_t *>(identifier), stampSize);
 
   return 0;
 };
