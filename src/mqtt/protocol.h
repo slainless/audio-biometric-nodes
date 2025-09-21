@@ -5,10 +5,10 @@
   X(VERIFY, "verify")
 
 #define MQTT_MESSAGE_TYPE                                                      \
-  X(MESSAGE, "msg")                                                            \
+  X(MESSAGE, "msg ")                                                           \
   X(FRAGMENT_HEADER, "head")                                                   \
   X(FRAGMENT_BODY, "frag")                                                     \
-  X(FRAGMENT_TRAILER, "end")
+  X(FRAGMENT_TRAILER, "end ")
 
 #define MQTT_TOPIC                                                             \
   X(RECORDER, "audio_biometric/slainless/device/recorder")                     \
