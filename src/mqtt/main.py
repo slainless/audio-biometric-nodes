@@ -70,34 +70,6 @@ def on_disconnect(
     )
 
 
-def on_message(client: mqtt.Client, userdata: Any, msg: MQTTMessage):
-    """Callback for when a message is received."""
-    try:
-        # Decode the message payload
-        payload = msg.payload.decode("utf-8")
-
-        # logger.info message details
-        logger.info(f"\n--- Received Message ---")
-        logger.info(f"Topic: {msg.topic}")
-        logger.info(f"QoS: {msg.qos}")
-        logger.info(f"Retain: {msg.retain}")
-        logger.info(f"Payload: {payload}")
-
-        # Try to parse as JSON for better formatting
-        try:
-            json_data = json.loads(payload)
-            logger.info(f"JSON Data:")
-            logger.info(json.dumps(json_data, indent=2))
-        except json.JSONDecodeError:
-            logger.info(f"Raw Data: {payload}")
-
-        logger.info("--- End Message ---\n")
-
-    except Exception as e:
-        logger.info(f"Error processing message: {e}")
-        logger.info(f"Raw payload: {msg.payload}")
-
-
 def on_subscribe(
     client: mqtt.Client,
     userdata: Any,
@@ -114,6 +86,12 @@ def on_subscribe(
             - Properties: {properties}
         """).strip()
     )
+
+
+def on_message(client: mqtt.Client, userdata: Any, msg: MQTTMessage):
+    """Callback for when a message is received."""
+
+    logger.info(f"Payload received:\n{msg.payload}")
 
 
 def main():
