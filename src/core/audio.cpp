@@ -30,9 +30,12 @@ void Recorder::begin(uint32_t sampleRate)
                                  (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
                              .sample_rate = sampleRate,
                              .bits_per_sample = bitsPerSample,
-                             .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
+                             // bro this is stupid, PIO framework library for arduino-esp32 is outdated!!!
+                             // this is a bug from older i2s driver:
+                             // https://github.com/espressif/esp-idf/issues/6625
+                             .channel_format = I2S_CHANNEL_FMT_ONLY_RIGHT,
                              .communication_format = I2S_COMM_FORMAT_STAND_I2S,
-                             .intr_alloc_flags = 0,
+                             .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
                              .dma_buf_count = 8,
                              .dma_buf_len = 1024,
                              .use_apll = true};
@@ -67,17 +70,22 @@ void writeSamples(
       bytesWritten = 0;
     }
 
-    int32_t sample = samplingBuffer[s];
+    // Work with the raw unsigned bit-pattern to avoid sign-extension issues
+    // when shifting. The microphone's 24 valid bits live either left-justified
+    // (top 24 bits of the 32-bit word) or right-justified; shift accordingly.
+    uint32_t raw = static_cast<uint32_t>(samplingBuffer[s]);
     uint32_t u;
     uint8_t b0, b1, b2;
 
     if (samples_left_justified)
     {
-      u = (static_cast<uint32_t>(sample) >> 8) & 0x00FFFFFFu;
+      // left-justified: valid 24 bits are in bits [31:8]
+      u = (raw >> 8) & 0x00FFFFFFu;
     }
     else
     {
-      u = static_cast<uint32_t>(sample) & 0x00FFFFFFu;
+      // right-justified: valid 24 bits are in bits [23:0]
+      u = raw & 0x00FFFFFFu;
     }
 
     // LSB-first for WAV 24-bit file (three bytes little-endian)
@@ -117,7 +125,7 @@ bool Recorder::readToFile(File &file, size_t bufferSize,
   writeWavHeader(file, actualTargetBytes);
   for (size_t i = 0; i < loops; i++)
   {
-    esp_err_t r = i2s_read(deviceIndex, samplingBuffer.data(), bufferSize, &bytesRead,
+    esp_err_t r = i2s_read(deviceIndex, samplingBuffer.data(), sizeof(samplingBuffer), &bytesRead,
                            portMAX_DELAY);
     if (r != ESP_OK)
     {
