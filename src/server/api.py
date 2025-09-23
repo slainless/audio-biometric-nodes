@@ -9,11 +9,12 @@ class ApiServer:
         self.verificator = verificator
 
     def attach(self, app: FastAPI):
+        app.get("/voice")(self.list_voices)
         app.put("/voice/{voice_name}")(self.register_voice)
         app.delete("/voice/{voice_name}")(self.remove_voice)
+        app.delete("/voice")(self.clear)
+
         app.post("/voice/verify")(self.verify_voice)
-        app.post("/voice/clear")(self.clear)
-        app.get("/voice")(self.list_voices)
 
     async def register_voice(self, voice_name: str, file: UploadFile = File(...)):
         self.verificator.embedder.set_reference(voice_name, file.file)
