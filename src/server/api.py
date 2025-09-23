@@ -28,10 +28,9 @@ class ApiServer:
         return self.verificator.verify(file.file)
 
     async def clear(self):
+        existing = list(self.verificator.embedder.source.all().keys())
         self.verificator.embedder.source.clear()
-        return JSONResponse(
-            dict(removed_embeddings=list(self.verificator.embedder.source.all().keys()))
-        )
+        return JSONResponse(dict(removed_embeddings=existing))
 
     async def list_voices(self):
         return JSONResponse(
