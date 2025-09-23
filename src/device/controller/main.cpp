@@ -48,4 +48,6 @@ void loop()
     return configureWiFi();
   if (cmd.equalsIgnoreCase("mqtt"))
     return configureMqtt(mqtt);
+  else
+    Serial.println("Unknown command, available commands are: wifi, mqtt");
 }

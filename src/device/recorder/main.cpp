@@ -62,4 +62,6 @@ void loop()
     return configureMqtt(mqtt);
   if (cmd.equalsIgnoreCase("record"))
     return recordToMqtt(recorder, mqtt);
+  else
+    Serial.println("Unknown command, available commands are: wifi, mqtt, record");
 }
