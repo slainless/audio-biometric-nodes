@@ -1,8 +1,15 @@
+from typing import runtime_checkable, Protocol
+
 from .command import CommandMatcher
 from .embedder import VoiceEmbedder
 from .transcriber import Transcriber
 
 from .types import AudioInput, VerificationResult
+
+
+@runtime_checkable
+class Seekable(Protocol):
+    def seek(self, offset: int, whence: int = 0) -> int: ...
 
 
 class Verificator:
@@ -52,6 +59,9 @@ class Verificator:
                 command=None,
                 reference=None,
             )
+
+        if isinstance(audio, Seekable):  # pyright: ignore[reportGeneralTypeIssues]
+            audio.seek(0)
 
         text = self.transcriber.transcribe(audio)
         command = self.command_matcher.predict_command(text)
