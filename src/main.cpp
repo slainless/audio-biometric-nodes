@@ -18,12 +18,15 @@ Mqtt mqtt(RECORDER_IDENTIFIER);
 Recorder recorder(I2S_NUM_0, RECORDER_SD_PIN, RECORDER_SCK_PIN,
                   RECORDER_WS_PIN);
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   recorder.begin(RECORDER_SAMPLE_RATE);
 
-  if (!SPIFFS.begin(true)) {
-    while (true) {
+  if (!SPIFFS.begin(true))
+  {
+    while (true)
+    {
       Serial.println("These components are missing:");
       Serial.println("- SPIFFS");
       Serial.println();
@@ -37,12 +40,15 @@ void setup() {
 
 void reconnectHandler() { reconnectMqtt(mqtt); }
 
-void loop() {
-  if (!mqtt.client) {
+void loop()
+{
+  if (!mqtt.client)
+  {
     Serial.println("MQTT client is not initialized, please setup mqtt");
   }
 
-  if (WiFi.status() != WL_CONNECTED) {
+  if (WiFi.status() != WL_CONNECTED)
+  {
     Serial.println("WiFi is not connected, please setup wifi");
   }
 

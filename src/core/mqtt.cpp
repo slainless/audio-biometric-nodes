@@ -13,13 +13,15 @@
 
 #define MQTT_CONFIG_PATH "/mqtt.bin"
 
-#define isClientReady                                                          \
-  if (!client) {                                                               \
-    Serial.println("MQTT client is not initialized, please setup mqtt");       \
-    return false;                                                              \
+#define isClientReady                                                    \
+  if (!client)                                                           \
+  {                                                                      \
+    Serial.println("MQTT client is not initialized, please setup mqtt"); \
+    return false;                                                        \
   }
 
-struct MqttConfig {
+struct MqttConfig
+{
   char host[64];
   uint16_t port;
   bool useSsl;
@@ -28,18 +30,24 @@ struct MqttConfig {
 MqttConfig mqttConfig;
 
 Mqtt::Mqtt(const char *identifier)
-    : identifier(identifier), stampSize(strlen(identifier)) {
+    : identifier(identifier), stampSize(strlen(identifier))
+{
   secureClient.setInsecure();
 }
 
-bool Mqtt::connect(const char *host, uint16_t port, bool secure) {
-  if (secure) {
+bool Mqtt::connect(const char *host, uint16_t port, bool secure)
+{
+  if (secure)
+  {
     client.reset(new MqttClient(secureClient));
-  } else {
+  }
+  else
+  {
     client.reset(new MqttClient(insecureClient));
   }
 
-  if (!client->connect(host, port)) {
+  if (!client->connect(host, port))
+  {
     return false;
   }
 
@@ -47,10 +55,14 @@ bool Mqtt::connect(const char *host, uint16_t port, bool secure) {
   return true;
 }
 
-void Mqtt::poll(std::function<void()> connectCallback) {
-  if (client) {
-    if (!client->connected()) {
-      if (connectCallback) {
+void Mqtt::poll(std::function<void()> connectCallback)
+{
+  if (client)
+  {
+    if (!client->connected())
+    {
+      if (connectCallback)
+      {
         Serial.println("MQTT client not connected, calling connect callback");
         connectCallback();
       }
@@ -60,7 +72,8 @@ void Mqtt::poll(std::function<void()> connectCallback) {
   }
 }
 
-int Mqtt::publishWill(const char *topic, const char *message) {
+int Mqtt::publishWill(const char *topic, const char *message)
+{
   isClientReady;
 
   client->beginWill(topic, false, 0);
@@ -71,7 +84,8 @@ int Mqtt::publishWill(const char *topic, const char *message) {
   return 0;
 };
 
-int Mqtt::publishMessage(const char *topic, const char *message) {
+int Mqtt::publishMessage(const char *topic, const char *message)
+{
   isClientReady;
 
   client->beginMessage(topic);
@@ -82,7 +96,8 @@ int Mqtt::publishMessage(const char *topic, const char *message) {
   return 0;
 };
 
-int Mqtt::publishFragmentHeader(const char *topic, const char *header) {
+int Mqtt::publishFragmentHeader(const char *topic, const char *header)
+{
   isClientReady;
 
   client->beginMessage(topic);
@@ -94,7 +109,8 @@ int Mqtt::publishFragmentHeader(const char *topic, const char *header) {
 };
 
 int Mqtt::publishFragmentBody(const char *topic, const uint8_t *body,
-                              size_t size) {
+                              size_t size)
+{
   isClientReady;
 
   client->beginMessage(topic);
@@ -105,7 +121,8 @@ int Mqtt::publishFragmentBody(const char *topic, const uint8_t *body,
   return 0;
 };
 
-int Mqtt::publishFragmentTrailer(const char *topic) {
+int Mqtt::publishFragmentTrailer(const char *topic)
+{
   isClientReady;
 
   client->beginMessage(topic);
@@ -115,7 +132,8 @@ int Mqtt::publishFragmentTrailer(const char *topic) {
   return 0;
 };
 
-int Mqtt::stamp(const char *protocol) {
+int Mqtt::stamp(const char *protocol)
+{
   isClientReady;
 
   client->print(protocol);
@@ -125,30 +143,36 @@ int Mqtt::stamp(const char *protocol) {
   return 0;
 };
 
-void reconnectMqtt(Mqtt &mqtt) {
-  if (mqttConfig.host[0] == '\0') {
+void reconnectMqtt(Mqtt &mqtt)
+{
+  if (mqttConfig.host[0] == '\0')
+  {
     Serial.println("MQTT broker host is not set, skipping reconnect");
     return;
   }
 
   Serial.printf("Connecting to %s:%d with SSL: %b\n", mqttConfig.host,
                 mqttConfig.port, mqttConfig.useSsl);
-  if (!mqtt.connect(mqttConfig.host, mqttConfig.port, mqttConfig.useSsl)) {
+  if (!mqtt.connect(mqttConfig.host, mqttConfig.port, mqttConfig.useSsl))
+  {
     Serial.print("MQTT connection failed! Error code = ");
     Serial.println(mqtt.client->connectError());
   }
 };
 
-void setupMqtt(Mqtt &mqtt) {
+void setupMqtt(Mqtt &mqtt)
+{
   Serial.println("Loading Mqtt configuration from flash");
   if (load(MQTT_CONFIG_PATH, reinterpret_cast<unsigned char *>(&mqttConfig),
-           sizeof(MqttConfig))) {
+           sizeof(MqttConfig)))
+  {
     Serial.println("Mqtt configuration loaded");
     reconnectMqtt(mqtt);
   }
 }
 
-void configureMqtt(Mqtt &mqtt) {
+void configureMqtt(Mqtt &mqtt)
+{
   Serial.print("Broker host: ");
   auto host = blockingReadStringUntil('\n');
   Serial.println(host);
@@ -171,9 +195,12 @@ void configureMqtt(Mqtt &mqtt) {
 
   Serial.println("Saving Mqtt configuration to flash");
   if (store(MQTT_CONFIG_PATH, reinterpret_cast<unsigned char *>(&mqttConfig),
-            sizeof(MqttConfig))) {
+            sizeof(MqttConfig)))
+  {
     Serial.println("Mqtt configuration saved");
-  } else {
+  }
+  else
+  {
     Serial.println("Failed to save Mqtt configuration to flash");
   }
 

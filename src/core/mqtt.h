@@ -8,13 +8,15 @@
 #include <cstdint>
 #include <functional>
 
-#define handleError(code, message)                                             \
-  if (code != 0) {                                                             \
-    Serial.printf("MQTT client error on %s: %d\n", message, code);             \
-    return code;                                                               \
+#define handleError(code, message)                                 \
+  if (code != 0)                                                   \
+  {                                                                \
+    Serial.printf("MQTT client error on %s: %d\n", message, code); \
+    return code;                                                   \
   }
 
-class Mqtt {
+class Mqtt
+{
 public:
   std::unique_ptr<MqttClient> client;
   Mqtt(const char *identifier);

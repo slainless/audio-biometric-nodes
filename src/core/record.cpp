@@ -9,7 +9,8 @@
 #define RECORDER_BUFFER_SIZE 512
 #define RECORDER_DURATION 5000
 
-int publishRecordingToMqtt(File &file, Mqtt &mqtt, uint32_t bufferSize) {
+int publishRecordingToMqtt(File &file, Mqtt &mqtt, uint32_t bufferSize)
+{
   size_t bytesRead;
   std::vector<uint8_t> buffer(bufferSize);
 
@@ -18,7 +19,8 @@ int publishRecordingToMqtt(File &file, Mqtt &mqtt, uint32_t bufferSize) {
   handleError(res, "publishing recording fragment header");
 
   size_t totalBytesRead = 0;
-  while (file.available()) {
+  while (file.available())
+  {
     auto bytesRead = file.read(buffer.data(), bufferSize);
     totalBytesRead += bytesRead;
 
@@ -35,19 +37,23 @@ int publishRecordingToMqtt(File &file, Mqtt &mqtt, uint32_t bufferSize) {
   return 0;
 }
 
-void recordToMqtt(Recorder &recorder, Mqtt &mqtt) {
-  if (!mqtt.client) {
+void recordToMqtt(Recorder &recorder, Mqtt &mqtt)
+{
+  if (!mqtt.client)
+  {
     Serial.println("MQTT client is not initialized, please setup mqtt");
     return;
   }
 
-  if (SPIFFS.exists(WAV_FILE_PATH)) {
+  if (SPIFFS.exists(WAV_FILE_PATH))
+  {
     SPIFFS.remove(WAV_FILE_PATH);
     delay(50);
   }
 
   auto write = SPIFFS.open(WAV_FILE_PATH, FILE_WRITE);
-  if (!write) {
+  if (!write)
+  {
     Serial.printf("Fail to open recording file: %s\n", WAV_FILE_PATH);
     return;
   }
@@ -57,7 +63,8 @@ void recordToMqtt(Recorder &recorder, Mqtt &mqtt) {
   write.close();
 
   auto read = SPIFFS.open(WAV_FILE_PATH, FILE_READ);
-  if (!read) {
+  if (!read)
+  {
     Serial.printf("Fail to open recording result: %s\n", WAV_FILE_PATH);
     return;
   }
@@ -67,7 +74,8 @@ void recordToMqtt(Recorder &recorder, Mqtt &mqtt) {
 
   Serial.println("Publishing recording to MQTT...");
   auto res = publishRecordingToMqtt(read, mqtt, RECORDER_BUFFER_SIZE);
-  if (res != 0) {
+  if (res != 0)
+  {
     Serial.printf("Fail to publish recording to MQTT: %d\n", res);
     read.close();
     return;

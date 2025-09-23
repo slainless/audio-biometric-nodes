@@ -1,8 +1,10 @@
 #include <SPIFFS.h>
 
-bool store(const char *path, uint8_t *address, size_t size) {
+bool store(const char *path, uint8_t *address, size_t size)
+{
   File file = SPIFFS.open(path, FILE_WRITE);
-  if (!file) {
+  if (!file)
+  {
     Serial.printf("Failed to open file for writing: %s\n", path);
     return false;
   }
@@ -12,9 +14,11 @@ bool store(const char *path, uint8_t *address, size_t size) {
   return true;
 };
 
-bool load(const char *path, uint8_t *address, size_t size) {
+bool load(const char *path, uint8_t *address, size_t size)
+{
   File file = SPIFFS.open(path, FILE_READ);
-  if (!file) {
+  if (!file)
+  {
     Serial.printf("Failed to open file for reading: %s\n", path);
     return false;
   }

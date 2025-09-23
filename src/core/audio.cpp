@@ -10,9 +10,12 @@ Recorder::Recorder(i2s_port_t deviceIndex, int sdInPin, int sckPin, int wsPin)
           .data_out_num = I2S_PIN_NO_CHANGE,
           .data_in_num = sdInPin,
       }),
-      deviceIndex(deviceIndex) {}
+      deviceIndex(deviceIndex)
+{
+}
 
-void Recorder::begin(uint32_t sampleRate) {
+void Recorder::begin(uint32_t sampleRate)
+{
   this->sampleRate = sampleRate;
   i2s_config_t i2s_config = {.mode =
                                  (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
@@ -32,7 +35,8 @@ void Recorder::begin(uint32_t sampleRate) {
 void Recorder::end() { i2s_driver_uninstall(I2S_NUM_0); }
 
 bool Recorder::readToFile(File &file, size_t bufferSize,
-                          unsigned long durationMs) {
+                          unsigned long durationMs)
+{
   size_t bytesRead;
   std::vector<uint8_t> buffer(bufferSize);
 
@@ -44,10 +48,12 @@ bool Recorder::readToFile(File &file, size_t bufferSize,
                 normalizedTargetBytes, durationMs, loops);
 
   writeWavHeader(file, normalizedTargetBytes);
-  for (size_t i = 0; i < loops; i++) {
+  for (size_t i = 0; i < loops; i++)
+  {
     esp_err_t r = i2s_read(deviceIndex, buffer.data(), bufferSize, &bytesRead,
                            portMAX_DELAY);
-    if (r != ESP_OK) {
+    if (r != ESP_OK)
+    {
       Serial.printf("[ERR] i2s_read failed: %d\n", r);
       return false;
     }
@@ -58,7 +64,8 @@ bool Recorder::readToFile(File &file, size_t bufferSize,
   return true;
 }
 
-void Recorder::writeWavHeader(File &file, uint32_t totalSamples) {
+void Recorder::writeWavHeader(File &file, uint32_t totalSamples)
+{
   uint32_t dataSize = totalSamples * I2S_BYTES_PER_SAMPLE;
   uint8_t header[44];
 
