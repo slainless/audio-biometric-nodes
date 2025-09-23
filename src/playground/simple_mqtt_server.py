@@ -3,7 +3,7 @@
 import sys
 import os
 
-from ..mqtt.core.server import BiometricMqttServer
+from ..mqtt.core.server import MqttServer
 from ..mqtt.core.ffi import Protocol
 import logging
 
@@ -23,7 +23,7 @@ def main():
     logger.info(f"Broker: {MQTT_BROKER_HOST}:{MQTT_BROKER_PORT}")
     logger.info(f"Topic: {RECORDER_TOPIC}")
 
-    client = BiometricMqttServer(
+    client = MqttServer(
         MQTT_BROKER_HOST, MQTT_BROKER_PORT, RECORDER_TOPIC, MQTT_KEEPALIVE
     )
 

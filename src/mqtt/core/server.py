@@ -13,7 +13,7 @@ from .ffi import Protocol
 logger = logging.getLogger(__name__)
 
 
-class BiometricMqttServer:
+class MqttServer:
     def __init__(
         self,
         broker_host: str,
