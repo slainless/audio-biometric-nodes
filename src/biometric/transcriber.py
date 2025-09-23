@@ -5,6 +5,7 @@ import wave
 
 from .types import AudioInput
 from transformers import AutoProcessor, VoxtralForConditionalGeneration
+import tempfile
 
 import sherpa_ncnn
 import numpy as np
@@ -33,6 +34,11 @@ class WhisperTranscriber(Transcriber):
         self.model = whisper.load_model(model_type)
 
     def transcribe(self, audio: AudioInput) -> str:
+        if not isinstance(audio, (str, Path)):
+            with tempfile.NamedTemporaryFile(delete=False) as f:
+                f.write(audio)
+                audio = f.name
+
         result = self.model.transcribe(audio, language="id")
         return result["text"].strip()
 

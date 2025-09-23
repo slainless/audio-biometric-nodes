@@ -27,7 +27,7 @@ class ApiServer:
         return PlainTextResponse(status_code=404, content="Voice embedding not found")
 
     async def verify_voice(self, file: UploadFile = File(...)):
-        return self.verificator.verify(file.file)
+        return self.verificator.verify(file.file.read(), threshold=self.threshold)
 
     async def clear(self):
         existing = list(self.verificator.embedder.source.all().keys())

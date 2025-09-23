@@ -1,15 +1,8 @@
-from typing import runtime_checkable, Protocol
-
 from .command import CommandMatcher
 from .embedder import VoiceEmbedder
 from .transcriber import Transcriber
 
-from .types import AudioInput, VerificationResult
-
-
-@runtime_checkable
-class Seekable(Protocol):
-    def seek(self, offset: int, whence: int = 0) -> int: ...
+from .types import AudioInput, VerificationResult, Seekable
 
 
 class Verificator:
