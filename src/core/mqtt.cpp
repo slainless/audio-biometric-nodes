@@ -148,7 +148,13 @@ bool Mqtt::subscribe(const char *topic,
 {
   isClientReady;
 
-  client->subscribe(topic, 0);
+  auto res = client->subscribe(topic, 0);
+  if (res != ERR_OK)
+  {
+    Serial.printf("Failed to subscribe to MQTT server (topic: %s) with code: %d\n", topic, res);
+    return false;
+  }
+
   client->onMessage(
       [cb](MqttClient *mqttClient, int messageSize)
       {
@@ -198,11 +204,13 @@ bool Mqtt::subscribe(const char *topic,
         size_t payloadSize = messageSize - 5 - idSize;
         char payload[payloadSize + 1];
 
-        Serial.printf("Receiving MQTT message of size %d from %s with content:\n%s", payloadSize, id, payload);
+        Serial.printf("Receiving MQTT message of size %d from %s with content:\n%s\n", payloadSize, id, payload);
         cb(payload);
 
 #undef __assert_read
       });
+
+  return true;
 }
 
 void reconnectMqtt(Mqtt &mqtt)

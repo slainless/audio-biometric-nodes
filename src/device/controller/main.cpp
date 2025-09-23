@@ -11,7 +11,7 @@ Mqtt mqtt(CONTROLLER_IDENTIFIER);
 void subscribeMqtt()
 {
   mqtt.subscribe(MqttTopic::CONTROLLER, [](const char *msg)
-                 { Serial.printf("Received message: %s", msg); });
+                 { Serial.printf("Received message: %s\n", msg); });
 }
 
 void setup()
