@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Protocol, BinaryIO
 import io
 
 import torch
@@ -10,9 +10,15 @@ from speechbrain.inference import EncoderClassifier
 
 
 class VoiceEmbedder(Protocol):
+    source: "EmbeddingSource"
+
     def get_embeddings(self) -> dict[str, np.ndarray]: ...
     def embed(self, audio: AudioInput) -> np.ndarray: ...
     def calculate_similarity(self, emb1: np.ndarray, emb2: np.ndarray) -> float: ...
+
+    def get_reference(self, key: str) -> np.ndarray | None: ...
+    def set_reference(self, key: str, audio: AudioInput): ...
+    def remove_reference(self, key: str): ...
 
 
 class EmbeddingSource(Protocol):
@@ -39,7 +45,7 @@ class SpeechbrainEmbedder(VoiceEmbedder):
         self.source = source
 
     @staticmethod
-    def _normalize_audio(audio_or_path: AudioInput) -> str | io.BytesIO:
+    def _normalize_audio(audio_or_path: AudioInput) -> str | BinaryIO:
         if (
             isinstance(audio_or_path, bytes)
             or isinstance(audio_or_path, bytearray)
@@ -65,6 +71,9 @@ class SpeechbrainEmbedder(VoiceEmbedder):
 
     def calculate_similarity(self, emb1: np.ndarray, emb2: np.ndarray) -> float:
         return np.dot(emb1, emb2) / (np.linalg.norm(emb1) * np.linalg.norm(emb2))
+
+    def get_reference(self, key: str) -> np.ndarray | None:
+        return self.source.get(key)
 
     def set_reference(self, key: str, audio: AudioInput):
         embedding = self.embed(audio)

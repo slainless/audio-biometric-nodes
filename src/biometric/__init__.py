@@ -13,4 +13,5 @@ __all__ = [
     "FileEmbeddingSource",
     "VoxtralTranscriber",
     "DiffCommandMatcher",
+    "EmbeddingSource",
 ]

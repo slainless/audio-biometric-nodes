@@ -1,4 +1,4 @@
-import io
+from typing import BinaryIO
 
 from pydantic import BaseModel
 
@@ -6,7 +6,7 @@ from .command import CommandMatcher
 from .embedder import VoiceEmbedder
 from .transcriber import Transcriber
 
-type AudioInput = str | bytes | io.BytesIO
+type AudioInput = str | bytes | BinaryIO
 
 
 class VerificationResult(BaseModel):
