@@ -1,4 +1,15 @@
 {
     "editor.formatOnSave": true,
-    "editor.tabSize": 2
+    "editor.tabSize": 2,
+    "files.associations": {
+        "**/frontmatter.json": "jsonc",
+        "**/.frontmatter/config/*.json": "jsonc",
+        "*.graphql": "graphql",
+        "cstring": "cpp",
+        "vector": "cpp"
+    },
+    "[python]": {
+        "editor.tabSize": 4
+    },
+    "python.analysis.autoImportCompletions": true
 }
