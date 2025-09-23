@@ -37,11 +37,11 @@ void Recorder::begin(uint32_t sampleRate)
                              .dma_buf_len = 1024,
                              .use_apll = true};
 
-  i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
-  i2s_set_pin(I2S_NUM_0, &i2s_pin_config);
+  i2s_driver_install(deviceIndex, &i2s_config, 0, NULL);
+  i2s_set_pin(deviceIndex, &i2s_pin_config);
 }
 
-void Recorder::end() { i2s_driver_uninstall(I2S_NUM_0); }
+void Recorder::end() { i2s_driver_uninstall(deviceIndex); }
 
 void writeSamples(
     size_t bytesRead,
@@ -151,10 +151,15 @@ void Recorder::writeWavHeader(File &file, size_t actualTargetBytes)
   memcpy(header + 12, "fmt ", 4);
   *(uint32_t *)(header + 16) = 16;
   *(uint16_t *)(header + 20) = 1;
+  // Num channels
   *(uint16_t *)(header + 22) = channelMode;
+  // Sample rate
   *(uint32_t *)(header + 24) = sampleRate;
+  // Byte rate = SampleRate * BlockAlign
   *(uint32_t *)(header + 28) = sampleRate * validBytesPerSample;
+  // Block align (bytes per sample frame)
   *(uint16_t *)(header + 32) = validBytesPerSample;
+  // Bits per sample (per channel)
   *(uint16_t *)(header + 34) = hardwareBitsPerSample;
 
   memcpy(header + 36, "data", 4);
