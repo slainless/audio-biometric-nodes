@@ -1,2 +1,10 @@
 cffi
 paho-mqtt
+speechbrain
+torchaudio
+torch
+numpy
+fastapi
+transformers
+pydantic
+mistral-common[audio]
