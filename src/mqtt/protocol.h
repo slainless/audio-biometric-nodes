@@ -23,7 +23,7 @@ extern "C"
 #define MQTT_MESSAGE_TYPE_KEY MqttMessageType
 #define MQTT_TOPIC_KEY MqttTopic
 #define MQTT_CONTROLLER_COMMAND_KEY MqttControllerCommand
-#define MQTT_IDENTIFIER MqttIdentifier
+#define MQTT_IDENTIFIER_KEY MqttIdentifier
 
 /* ------------------------------ Protocol List ----------------------------- */
 
