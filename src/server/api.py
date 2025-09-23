@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Response, UploadFile, File
+from fastapi import FastAPI, UploadFile, File
+from fastapi.responses import JSONResponse, PlainTextResponse
 
 from ..biometric import Verificator
 
@@ -21,14 +22,22 @@ class ApiServer:
         if self.verificator.embedder.remove_reference(voice_name):
             return
 
-        return Response(status_code=404, content="Voice embedding not found")
+        return PlainTextResponse(status_code=404, content="Voice embedding not found")
 
     async def verify_voice(self, file: UploadFile = File(...)):
         return self.verificator.verify(file.file)
 
     async def clear(self):
         self.verificator.embedder.source.clear()
-        return dict(removed_embeddings=self.verificator.embedder.source.all().keys())
+        return JSONResponse(
+            dict(removed_embeddings=list(self.verificator.embedder.source.all().keys()))
+        )
 
     async def list_voices(self):
-        return dict(registered_embeddings=self.verificator.embedder.source.all().keys())
+        return JSONResponse(
+            dict(
+                registered_embeddings=list(
+                    self.verificator.embedder.source.all().keys()
+                )
+            )
+        )
