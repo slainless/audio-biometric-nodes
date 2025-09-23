@@ -1,16 +1,25 @@
 from typing import Protocol
+from pathlib import Path
+import io
+import wave
 
 from .types import AudioInput
 from transformers import AutoProcessor, VoxtralForConditionalGeneration
 
-import wave
 import sherpa_ncnn
 import numpy as np
-from pathlib import Path
-import io
 
 import torch
 from scipy.signal import resample_poly
+
+current_dir = Path(__file__).parent
+k2_indonesian_model = (
+    current_dir
+    / ".."
+    / ".."
+    / ".models"
+    / "sherpa-ncnn-pruned-transducer-stateless7-streaming-id"
+)
 
 
 class Transcriber(Protocol):
@@ -102,16 +111,14 @@ class KaldiIndonesianTranscriber(Transcriber):
                 fobj.close()
 
     def transcribe(self, audio: AudioInput) -> str:
-        path = "./sherpa-ncnn-pruned-transducer-stateless7-streaming-id"
-
         recognizer = sherpa_ncnn.Recognizer(
-            tokens=f"{path}/tokens.txt",
-            encoder_param=f"{path}/encoder_jit_trace-pnnx.ncnn.param",
-            encoder_bin=f"{path}/encoder_jit_trace-pnnx.ncnn.bin",
-            decoder_param=f"{path}/decoder_jit_trace-pnnx.ncnn.param",
-            decoder_bin=f"{path}/decoder_jit_trace-pnnx.ncnn.bin",
-            joiner_param=f"{path}/joiner_jit_trace-pnnx.ncnn.param",
-            joiner_bin=f"{path}/joiner_jit_trace-pnnx.ncnn.bin",
+            tokens=f"{k2_indonesian_model}/tokens.txt",
+            encoder_param=f"{k2_indonesian_model}/encoder_jit_trace-pnnx.ncnn.param",
+            encoder_bin=f"{k2_indonesian_model}/encoder_jit_trace-pnnx.ncnn.bin",
+            decoder_param=f"{k2_indonesian_model}/decoder_jit_trace-pnnx.ncnn.param",
+            decoder_bin=f"{k2_indonesian_model}/decoder_jit_trace-pnnx.ncnn.bin",
+            joiner_param=f"{k2_indonesian_model}/joiner_jit_trace-pnnx.ncnn.param",
+            joiner_bin=f"{k2_indonesian_model}/joiner_jit_trace-pnnx.ncnn.bin",
             num_threads=4,
         )
         samples = self.read_wave_to_float32(audio, recognizer.sample_rate)
