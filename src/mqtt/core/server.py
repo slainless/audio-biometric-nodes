@@ -1,16 +1,19 @@
+from typing import Any, Callable
+from textwrap import dedent
+import logging
+
 import paho.mqtt.client as mqtt
 from paho.mqtt.reasoncodes import ReasonCode
 from paho.mqtt.client import ConnectFlags, DisconnectFlags, MQTTMessage
 from paho.mqtt.properties import Properties
 from paho.mqtt.enums import CallbackAPIVersion
-from typing import Any
-from textwrap import dedent
-import logging
 
 from .message import MessageAssembler
 from .ffi import Protocol
 
 logger = logging.getLogger(__name__)
+
+type OnVerifyCallback = Callable[["MqttServer", str, bytes], None]
 
 
 class MqttServer:
@@ -38,10 +41,10 @@ class MqttServer:
 
         self._message_assembler.on_assembled = self._on_verify
 
-        def default_on_verify(id: str, data: bytes):
+        def default_on_verify(server: "MqttServer", id: str, data: bytes):
             pass
 
-        self.on_verify = default_on_verify
+        self.on_verify: OnVerifyCallback = default_on_verify
 
     def start_forever(self):
         self._client.connect(self._broker_host, self._broker_port, self._keepalive)
@@ -162,4 +165,4 @@ class MqttServer:
     def _on_verify(self, id: str, data: bytes):
         """Callback for when a message is assembled."""
         logger.info(f"Message assembled, size: {len(data)}. Calling callback...")
-        self.on_verify(id, data)
+        self.on_verify(self, id, data)
