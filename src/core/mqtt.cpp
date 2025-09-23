@@ -149,7 +149,7 @@ bool Mqtt::subscribe(const char *topic,
   isClientReady;
 
   auto res = client->subscribe(topic, 0);
-  if (res != ERR_OK)
+  if (res != 1)
   {
     Serial.printf("Failed to subscribe to MQTT server (topic: %s) with code: %d\n", topic, res);
     return false;
