@@ -1,4 +1,5 @@
 #include "core/mqtt.h"
+#include "mqtt/protocol.h"
 #include "setup/wifi.h"
 
 #include "device/controller/controller.h"
@@ -6,6 +7,12 @@
 #include <SPIFFS.h>
 
 Mqtt mqtt(CONTROLLER_IDENTIFIER);
+
+void subscribeMqtt()
+{
+  mqtt.subscribe(MqttTopic::CONTROLLER, [](const char *msg)
+                 { Serial.printf("Received message: %s", msg); });
+}
 
 void setup()
 {
@@ -24,9 +31,14 @@ void setup()
 
   setupWiFi();
   setupMqtt(mqtt);
+  subscribeMqtt();
 }
 
-void reconnectHandler() { reconnectMqtt(mqtt); }
+void reconnectHandler()
+{
+  reconnectMqtt(mqtt);
+  subscribeMqtt();
+}
 
 void loop()
 {
@@ -47,7 +59,10 @@ void loop()
   if (cmd.equalsIgnoreCase("wifi"))
     return configureWiFi();
   if (cmd.equalsIgnoreCase("mqtt"))
-    return configureMqtt(mqtt);
+  {
+    configureMqtt(mqtt);
+    subscribeMqtt();
+  }
   else
     Serial.println("Unknown command, available commands are: wifi, mqtt");
 }
