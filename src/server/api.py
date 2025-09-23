@@ -5,7 +5,8 @@ from ..biometric import Verificator
 
 
 class ApiServer:
-    def __init__(self, verificator: Verificator):
+    def __init__(self, verificator: Verificator, threshold: float = 0.5):
+        self.threshold = threshold
         self.verificator = verificator
 
     def attach(self, app: FastAPI):

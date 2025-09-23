@@ -52,6 +52,6 @@ api_server = ApiServer(verificator)
 mqtt_server = MqttServer(
     MQTT_BROKER_HOST, MQTT_BROKER_PORT, RECORDER_TOPIC, MQTT_KEEPALIVE
 )
-mqtt_server.on_verify = VerificationHandler(verificator)
+mqtt_server.on_verify = VerificationHandler(verificator, threshold=0.35)
 
 app = FastAPI(lifespan=BiometricServerLifecycle(mqtt_server, api_server).lifespan())
