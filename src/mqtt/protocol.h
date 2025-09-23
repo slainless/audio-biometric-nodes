@@ -10,11 +10,12 @@ extern "C"
 /*                             Protocol Definition                            */
 /* -------------------------------------------------------------------------- */
 
-#define MQTT_PROTOCOL          \
-  _MQEXPAND(MQTT_HEADER)       \
-  _MQEXPAND(MQTT_MESSAGE_TYPE) \
-  _MQEXPAND(MQTT_TOPIC)        \
-  _MQEXPAND(MQTT_CONTROLLER_COMMAND)
+#define MQTT_PROTOCOL                \
+  _MQEXPAND(MQTT_HEADER)             \
+  _MQEXPAND(MQTT_MESSAGE_TYPE)       \
+  _MQEXPAND(MQTT_TOPIC)              \
+  _MQEXPAND(MQTT_CONTROLLER_COMMAND) \
+  _MQEXPAND(MQTT_IDENTIFIER)
 
 /* ------------------------------ Protocol Key ------------------------------ */
 
@@ -22,6 +23,7 @@ extern "C"
 #define MQTT_MESSAGE_TYPE_KEY MqttMessageType
 #define MQTT_TOPIC_KEY MqttTopic
 #define MQTT_CONTROLLER_COMMAND_KEY MqttControllerCommand
+#define MQTT_IDENTIFIER MqttIdentifier
 
 /* ------------------------------ Protocol List ----------------------------- */
 
@@ -42,6 +44,9 @@ extern "C"
 #define MQTT_CONTROLLER_COMMAND_LIST \
   _MQX(ON, "on")                     \
   _MQX(OFF, "off")
+
+#define MQTT_IDENTIFIER_LIST \
+  _MQX(SERVER, "biometric-server")
 
 /* -------------------------------------------------------------------------- */
 /*                              End of Definition                             */

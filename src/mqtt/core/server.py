@@ -162,6 +162,18 @@ class MqttServer:
         logger.info(f"Fragmented message received: {metadata}")
         self._message_assembler.add_message(id, type, data)
 
+    def send_command(self, destination: str, command: str):
+        if command not in Protocol.MqttControllerCommand.Values:
+            raise ValueError(f"Invalid command: {command}")
+
+        payload = bytearray()
+        payload.extend(Protocol.MqttMessageType.MESSAGE.encode())
+        payload.extend(len(Protocol.MqttIdentifier.SERVER).to_bytes())
+        payload.extend(Protocol.MqttIdentifier.SERVER.encode())
+        payload.extend(command.encode())
+
+        self._client.publish(Protocol.MqttTopic.CONTROLLER, payload, retain=True)
+
     def _on_verify(self, id: str, data: bytes):
         """Callback for when a message is assembled."""
         logger.info(f"Message assembled, size: {len(data)}. Calling callback...")
