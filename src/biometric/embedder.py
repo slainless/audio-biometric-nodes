@@ -1,0 +1,68 @@
+from typing import Protocol
+import io
+
+import torch
+import torchaudio
+import numpy as np
+
+from .verificator import VoiceEmbedder, AudioInput
+from speechbrain.inference import EncoderClassifier
+
+
+class EmbeddingSource(Protocol):
+    def all(self) -> dict[str, np.ndarray]: ...
+    def get(self, key: str) -> np.ndarray | None: ...
+    def set(self, key: str, value: np.ndarray): ...
+    def remove(self, key: str): ...
+
+
+class SpeechbrainEmbedder(VoiceEmbedder):
+    def __init__(
+        self,
+        source: EmbeddingSource,
+        device="cuda" if torch.cuda.is_available() else "cpu",
+    ):
+        model = EncoderClassifier.from_hparams(
+            source="speechbrain/spkrec-ecapa-voxceleb",
+        )
+        if not model:
+            raise ValueError("Failed to load speaker embedding model")
+        self.model = model.to(device)
+        self.device = device
+
+        self.source = source
+
+    @staticmethod
+    def _normalize_audio(audio_or_path: AudioInput) -> str | io.BytesIO:
+        if (
+            isinstance(audio_or_path, bytes)
+            or isinstance(audio_or_path, bytearray)
+            or isinstance(audio_or_path, memoryview)
+        ):
+            return io.BytesIO(audio_or_path)
+        else:
+            return audio_or_path
+
+    def embed(self, audio: AudioInput) -> np.ndarray:
+        """Extract speaker embedding from audio file"""
+
+        signal, sr = torchaudio.load(self._normalize_audio(audio))
+        if sr != 16000:
+            transform = torchaudio.transforms.Resample(orig_freq=sr, new_freq=16000)
+            signal = transform(signal)
+        embedding = self.model.encode_batch(signal)
+        embedding = embedding.squeeze().detach().cpu().numpy()
+        return embedding
+
+    def get_embeddings(self) -> dict[str, np.ndarray]:
+        return self.source.all()
+
+    def calculate_similarity(self, emb1: np.ndarray, emb2: np.ndarray) -> float:
+        return np.dot(emb1, emb2) / (np.linalg.norm(emb1) * np.linalg.norm(emb2))
+
+    def set_reference(self, key: str, audio: AudioInput):
+        embedding = self.embed(audio)
+        self.source.set(key, embedding)
+
+    def remove_reference(self, key: str):
+        self.source.remove(key)
