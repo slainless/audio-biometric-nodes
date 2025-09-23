@@ -125,7 +125,7 @@ bool Recorder::readToFile(File &file, size_t bufferSize,
   writeWavHeader(file, actualTargetBytes);
   for (size_t i = 0; i < loops; i++)
   {
-    esp_err_t r = i2s_read(deviceIndex, samplingBuffer.data(), sizeof(samplingBuffer), &bytesRead,
+    esp_err_t r = i2s_read(deviceIndex, samplingBuffer.data(), bufferSize, &bytesRead,
                            portMAX_DELAY);
     if (r != ESP_OK)
     {
