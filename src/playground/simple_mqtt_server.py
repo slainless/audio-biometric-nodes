@@ -3,8 +3,8 @@
 import sys
 import os
 
-from .core.server import BiometricMqttServer
-from .core.ffi import Protocol
+from ..mqtt.core.server import BiometricMqttServer
+from ..mqtt.core.ffi import Protocol
 import logging
 
 logging.basicConfig(level=logging.INFO)
