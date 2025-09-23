@@ -18,6 +18,7 @@ class FileEmbeddingSource(EmbeddingSource):
             data = np.load(self.file)
             self.store = {key: data[key] for key in data}
         else:
+            self.file.parent.mkdir(parents=True, exist_ok=True)
             self.store = {}
 
     def all(self) -> dict[str, np.ndarray]:
@@ -30,7 +31,13 @@ class FileEmbeddingSource(EmbeddingSource):
         self.store[key] = value
         self.write()
 
-    def remove(self, key: str):
+    def remove(self, key: str) -> bool:
         if key in self.store:
             del self.store[key]
             self.write()
+            return True
+        return False
+
+    def clear(self):
+        self.store = {}
+        self.write()
