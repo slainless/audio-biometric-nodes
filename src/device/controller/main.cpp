@@ -63,6 +63,4 @@ void loop()
     configureMqtt(mqtt);
     subscribeMqtt();
   }
-  else
-    Serial.println("Unknown command, available commands are: wifi, mqtt");
 }
