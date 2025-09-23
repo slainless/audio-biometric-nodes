@@ -52,4 +52,4 @@ mqtt_server = MqttServer(
     MQTT_BROKER_HOST, MQTT_BROKER_PORT, RECORDER_TOPIC, MQTT_KEEPALIVE
 )
 
-app = FastAPI(lifespan=BiometricServerLifecycle(mqtt_server, api_server).lifespan)
+app = FastAPI(lifespan=BiometricServerLifecycle(mqtt_server, api_server).lifespan())

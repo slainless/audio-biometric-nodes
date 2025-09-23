@@ -15,7 +15,7 @@ class BiometricServerLifecycle:
         self.api_server = api_server
 
     @asynccontextmanager
-    async def lifespan(self, app: FastAPI):
+    async def _lifespan(self, app: FastAPI):
         self.mqtt_server.start()
         _logger.info("Connected to MQTT server application")
 
@@ -25,3 +25,6 @@ class BiometricServerLifecycle:
 
         self.mqtt_server.stop()
         _logger.info("Disconnected from MQTT server application")
+
+    def lifespan(self):
+        return self._lifespan
