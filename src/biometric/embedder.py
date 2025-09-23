@@ -46,11 +46,7 @@ class SpeechbrainEmbedder(VoiceEmbedder):
 
     @staticmethod
     def _normalize_audio(audio_or_path: AudioInput) -> str | BinaryIO:
-        if (
-            isinstance(audio_or_path, bytes)
-            or isinstance(audio_or_path, bytearray)
-            or isinstance(audio_or_path, memoryview)
-        ):
+        if isinstance(audio_or_path, (bytes, bytearray, memoryview)):
             return io.BytesIO(audio_or_path)
         else:
             return audio_or_path
