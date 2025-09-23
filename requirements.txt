@@ -13,3 +13,4 @@ accelerate
 sherpa-ncnn 
 sherpa-ncnn-bin
 python-multipart
+openai-whisper

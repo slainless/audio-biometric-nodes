@@ -12,6 +12,8 @@ import numpy as np
 import torch
 from scipy.signal import resample_poly
 
+import whisper
+
 current_dir = Path(__file__).parent
 k2_indonesian_model = (
     current_dir
@@ -24,6 +26,15 @@ k2_indonesian_model = (
 
 class Transcriber(Protocol):
     def transcribe(self, audio: AudioInput) -> str: ...
+
+
+class WhisperTranscriber(Transcriber):
+    def __init__(self, model_type: str = "base"):
+        self.model = whisper.load_model(model_type)
+
+    def transcribe(self, audio: AudioInput) -> str:
+        result = self.model.transcribe(audio, language="id")
+        return result["text"].strip()
 
 
 class KaldiIndonesianTranscriber(Transcriber):
