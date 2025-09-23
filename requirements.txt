@@ -9,3 +9,4 @@ transformers
 pydantic
 mistral-common[audio]
 uvicorn
+accelerate
