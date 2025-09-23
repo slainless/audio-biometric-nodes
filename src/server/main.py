@@ -36,13 +36,11 @@ logging.basicConfig(level=logging.DEBUG)
 embedding_source = FileEmbeddingSource(EMBEDDING_FILE_PATH)
 command_matcher = DiffCommandMatcher(
     {
-        "nyalakan lampu": "LAMP_ON",
-        "matikan lampu": "LAMP_OFF",
-        "hidupkan lampu": "LAMP_ON",
-        "tutup lampu": "LAMP_OFF",
-        "buka lampu": "LAMP_ON",
-        "lampu hidup": "LAMP_ON",
-        "lampu mati": "LAMP_OFF",
+        "nyalakan lampu": Protocol.MqttControllerCommand.ON,
+        "hidupkan lampu": Protocol.MqttControllerCommand.ON,
+        "lampu hidup": Protocol.MqttControllerCommand.ON,
+        "matikan lampu": Protocol.MqttControllerCommand.OFF,
+        "lampu mati": Protocol.MqttControllerCommand.OFF,
     }
 )
 verificator = Verificator(
