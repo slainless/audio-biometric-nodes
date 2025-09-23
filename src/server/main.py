@@ -10,6 +10,7 @@ from ..biometric import (
     SpeechbrainEmbedder,
     VoxtralTranscriber,
     KaldiIndonesianTranscriber,
+    WhisperTranscriber,
     DiffCommandMatcher,
     FileEmbeddingSource,
     Verificator,
@@ -45,7 +46,7 @@ command_matcher = DiffCommandMatcher(
     }
 )
 verificator = Verificator(
-    command_matcher, SpeechbrainEmbedder(embedding_source), KaldiIndonesianTranscriber()
+    command_matcher, SpeechbrainEmbedder(embedding_source), WhisperTranscriber()
 )
 
 api_server = ApiServer(verificator)
