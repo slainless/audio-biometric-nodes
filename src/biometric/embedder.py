@@ -56,6 +56,9 @@ class SpeechbrainEmbedder(VoiceEmbedder):
         """Extract speaker embedding from audio file"""
 
         signal, sr = torchaudio.load(self._normalize_audio(audio))
+        if signal.shape[0] > 1:
+            signal = signal.mean(dim=0, keepdim=True)
+
         if sr != 16000:
             transform = torchaudio.transforms.Resample(orig_freq=sr, new_freq=16000)
             signal = transform(signal)
