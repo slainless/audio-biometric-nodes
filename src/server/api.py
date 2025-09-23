@@ -1,10 +1,12 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse, PlainTextResponse
 
+from .fastapi import FastAPIAttachment
+
 from ..biometric import Verificator
 
 
-class ApiServer:
+class ApiAttachment(FastAPIAttachment):
     def __init__(self, verificator: Verificator, threshold: float = 0.5):
         self.threshold = threshold
         self.verificator = verificator

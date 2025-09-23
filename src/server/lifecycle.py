@@ -3,23 +3,25 @@ import logging
 
 from fastapi import FastAPI
 
+from .fastapi import FastAPIAttachment
+
 from ..mqtt import MqttServer
-from .api import ApiServer
 
 _logger = logging.getLogger(__name__)
 
 
 class BiometricServerLifecycle:
-    def __init__(self, mqtt_server: MqttServer, api_server: ApiServer):
+    def __init__(self, mqtt_server: MqttServer, *attachments: FastAPIAttachment):
         self.mqtt_server = mqtt_server
-        self.api_server = api_server
+        self.attachments = attachments
 
     @asynccontextmanager
     async def _lifespan(self, app: FastAPI):
         self.mqtt_server.start()
         _logger.info("Connected to MQTT server application")
 
-        self.api_server.attach(app)
+        for attachment in self.attachments:
+            attachment.attach(app)
 
         yield
 
