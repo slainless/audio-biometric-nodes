@@ -143,6 +143,68 @@ int Mqtt::stamp(const char *protocol)
   return 0;
 };
 
+bool Mqtt::subscribe(const char *topic,
+                     std::function<void(const char *message)> cb)
+{
+  isClientReady;
+
+  client->subscribe(topic, 0);
+  client->onMessage(
+      [cb](MqttClient *mqttClient, int messageSize)
+      {
+#define __assert_read(into, size)                                                 \
+  read = mqttClient->read(into, size);                                            \
+  if (read != size)                                                               \
+  {                                                                               \
+    Serial.printf("EOF: Expecting message to be of length %d, instead got: %d\n", \
+                  size, read);                                                    \
+    return;                                                                       \
+  }
+        int read;
+
+        if (messageSize < 6)
+        {
+          Serial.println("Received MQTT message that is too short");
+          return;
+        }
+
+        if (messageSize == 6)
+        {
+          Serial.println("Receiving empty MQTT message");
+          cb("");
+          return;
+        }
+
+        char messageType[5] = {0};
+        __assert_read(reinterpret_cast<uint8_t *>(messageType), 4);
+
+        if (!strncmp(messageType, MqttMessageType::MESSAGE, 4))
+        {
+          Serial.printf("Receiving non-message type MQTT message: %d\n", messageType);
+        }
+
+        uint8_t idSize;
+        __assert_read(&idSize, 1);
+
+        char id[idSize + 1];
+        __assert_read(reinterpret_cast<uint8_t *>(id), idSize);
+
+        if (!strncmp(id, MqttIdentifier::SERVER, idSize))
+        {
+          Serial.printf("Received MQTT message from source other than server: %s\n", id);
+          return;
+        }
+
+        size_t payloadSize = messageSize - 5 - idSize;
+        char payload[payloadSize + 1];
+
+        Serial.printf("Receiving MQTT message of size %d from %s with content:\n%s", payloadSize, id, payload);
+        cb(payload);
+
+#undef __assert_read
+      });
+}
+
 void reconnectMqtt(Mqtt &mqtt)
 {
   if (mqttConfig.host[0] == '\0')

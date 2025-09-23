@@ -30,6 +30,9 @@ public:
   int publishFragmentBody(const char *topic, const uint8_t *body, size_t size);
   int publishFragmentTrailer(const char *topic);
 
+  bool subscribe(const char *topic,
+                 std::function<void(const char *message)> cb);
+
 private:
   const char *identifier;
   uint8_t stampSize;
