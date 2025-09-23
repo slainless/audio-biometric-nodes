@@ -13,7 +13,7 @@ from ..biometric import (
     FileEmbeddingSource,
     Verificator,
 )
-from ..mqtt import MqttServer, Protocol
+from ..mqtt import MqttServer, Protocol, VerificationHandler
 from .api import ApiServer
 
 current_dir = Path(__file__).parent
@@ -51,5 +51,6 @@ api_server = ApiServer(verificator)
 mqtt_server = MqttServer(
     MQTT_BROKER_HOST, MQTT_BROKER_PORT, RECORDER_TOPIC, MQTT_KEEPALIVE
 )
+mqtt_server.on_verify = VerificationHandler(verificator)
 
 app = FastAPI(lifespan=BiometricServerLifecycle(mqtt_server, api_server).lifespan())
