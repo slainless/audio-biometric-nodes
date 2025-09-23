@@ -20,7 +20,7 @@ class VoxtralTranscriber(Transcriber):
         )
         self.device = device
 
-    def transcribe_audio(self, audio: AudioInput) -> str:
+    def transcribe(self, audio: AudioInput) -> str:
         inputs = self.audio_processor.apply_transcription_request(
             language="en", audio=audio, model_id=self.voxtral_repo_id
         )

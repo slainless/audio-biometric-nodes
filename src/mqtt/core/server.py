@@ -47,6 +47,10 @@ class MqttServer:
         self._client.connect(self._broker_host, self._broker_port, self._keepalive)
         self._client.loop_forever(retry_first_connection=True)
 
+    def start(self):
+        self._client.connect(self._broker_host, self._broker_port, self._keepalive)
+        self._client.loop_start()
+
     def stop(self):
         self._client.disconnect()
 
