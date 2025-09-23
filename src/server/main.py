@@ -9,6 +9,7 @@ from .lifecycle import BiometricServerLifecycle
 from ..biometric import (
     SpeechbrainEmbedder,
     VoxtralTranscriber,
+    KaldiIndonesianTranscriber,
     DiffCommandMatcher,
     FileEmbeddingSource,
     Verificator,
@@ -44,7 +45,7 @@ command_matcher = DiffCommandMatcher(
     }
 )
 verificator = Verificator(
-    command_matcher, SpeechbrainEmbedder(embedding_source), VoxtralTranscriber()
+    command_matcher, SpeechbrainEmbedder(embedding_source), KaldiIndonesianTranscriber()
 )
 
 api_server = ApiServer(verificator)

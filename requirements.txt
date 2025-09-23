@@ -10,3 +10,6 @@ pydantic
 mistral-common[audio]
 uvicorn
 accelerate
+sherpa-ncnn 
+sherpa-ncnn-bin
+python-multipart

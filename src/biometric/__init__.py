@@ -4,7 +4,7 @@ from .types import VerificationResult, AudioInput
 
 from .embedder import SpeechbrainEmbedder, EmbeddingSource, VoiceEmbedder
 from .source import FileEmbeddingSource
-from .transcriber import VoxtralTranscriber, Transcriber
+from .transcriber import VoxtralTranscriber, KaldiIndonesianTranscriber, Transcriber
 from .command import DiffCommandMatcher, CommandMatcher
 
 __all__ = [
@@ -14,6 +14,7 @@ __all__ = [
     "SpeechbrainEmbedder",
     "FileEmbeddingSource",
     "VoxtralTranscriber",
+    "KaldiIndonesianTranscriber",
     "DiffCommandMatcher",
     "EmbeddingSource",
 ]
