@@ -43,6 +43,54 @@ void Recorder::begin(uint32_t sampleRate)
 
 void Recorder::end() { i2s_driver_uninstall(I2S_NUM_0); }
 
+void writeSamples(
+    size_t bytesRead,
+    const int32_t *samplingBuffer,
+    size_t &bytesWritten, // caller-maintained write position
+    uint8_t *fsBuffer,
+    size_t fsBufferSize, // MUST be actual capacity of fsBuffer
+    File &file)
+{
+  if (bytesPerSample == 0)
+    return;
+
+  size_t numOfSamples = bytesRead / bytesPerSample;
+  if (numOfSamples == 0)
+    return;
+
+  for (size_t s = 0; s < numOfSamples; ++s)
+  {
+    // Ensure enough room, otherwise flush
+    if (bytesWritten + validBytesPerSample > fsBufferSize)
+    {
+      file.write(fsBuffer, bytesWritten);
+      bytesWritten = 0;
+    }
+
+    int32_t sample = samplingBuffer[s];
+    uint32_t u;
+    uint8_t b0, b1, b2;
+
+    if (samples_left_justified)
+    {
+      u = (static_cast<uint32_t>(sample) >> 8) & 0x00FFFFFFu;
+    }
+    else
+    {
+      u = static_cast<uint32_t>(sample) & 0x00FFFFFFu;
+    }
+
+    // LSB-first for WAV 24-bit file (three bytes little-endian)
+    b0 = static_cast<uint8_t>(u & 0xFFu);
+    b1 = static_cast<uint8_t>((u >> 8) & 0xFFu);
+    b2 = static_cast<uint8_t>((u >> 16) & 0xFFu);
+
+    fsBuffer[bytesWritten++] = b0;
+    fsBuffer[bytesWritten++] = b1;
+    fsBuffer[bytesWritten++] = b2;
+  }
+}
+
 bool Recorder::readToFile(File &file, size_t bufferSize,
                           unsigned long durationMs)
 {
@@ -90,54 +138,6 @@ bool Recorder::readToFile(File &file, size_t bufferSize,
   }
 
   return true;
-}
-
-void writeSamples(
-    size_t bytesRead,
-    const int32_t *samplingBuffer,
-    size_t &bytesWritten, // caller-maintained write position
-    uint8_t *fsBuffer,
-    size_t fsBufferSize, // MUST be actual capacity of fsBuffer
-    File &file)
-{
-  if (bytesPerSample == 0)
-    return;
-
-  size_t numOfSamples = bytesRead / bytesPerSample;
-  if (numOfSamples == 0)
-    return;
-
-  for (size_t s = 0; s < numOfSamples; ++s)
-  {
-    // Ensure enough room, otherwise flush
-    if (bytesWritten + validBytesPerSample > fsBufferSize)
-    {
-      file.write(fsBuffer, bytesWritten);
-      bytesWritten = 0;
-    }
-
-    int32_t sample = samplingBuffer[s];
-    uint32_t u;
-    uint8_t b0, b1, b2;
-
-    if (samples_left_justified)
-    {
-      u = (static_cast<uint32_t>(sample) >> 8) & 0x00FFFFFFu;
-    }
-    else
-    {
-      u = static_cast<uint32_t>(sample) & 0x00FFFFFFu;
-    }
-
-    // LSB-first for WAV 24-bit file (three bytes little-endian)
-    b0 = static_cast<uint8_t>(u & 0xFFu);
-    b1 = static_cast<uint8_t>((u >> 8) & 0xFFu);
-    b2 = static_cast<uint8_t>((u >> 16) & 0xFFu);
-
-    fsBuffer[bytesWritten++] = b0;
-    fsBuffer[bytesWritten++] = b1;
-    fsBuffer[bytesWritten++] = b2;
-  }
 }
 
 void Recorder::writeWavHeader(File &file, size_t actualTargetBytes)
