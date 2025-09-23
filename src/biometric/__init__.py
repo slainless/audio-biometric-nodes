@@ -1,4 +1,6 @@
-from .verificator import Verificator, AudioInput, VerificationResult
+from .verificator import Verificator
+
+from .types import VerificationResult, AudioInput
 
 from .embedder import SpeechbrainEmbedder, EmbeddingSource, VoiceEmbedder
 from .source import FileEmbeddingSource

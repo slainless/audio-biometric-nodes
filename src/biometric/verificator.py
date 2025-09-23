@@ -1,20 +1,8 @@
-from typing import BinaryIO
-
-from pydantic import BaseModel
-
 from .command import CommandMatcher
 from .embedder import VoiceEmbedder
 from .transcriber import Transcriber
 
-type AudioInput = str | bytes | BinaryIO
-
-
-class VerificationResult(BaseModel):
-    verified: bool
-    similarity: float
-    transcription: str
-    command: str | None = None
-    reference: str | None = None
+from .types import AudioInput, VerificationResult
 
 
 class Verificator:

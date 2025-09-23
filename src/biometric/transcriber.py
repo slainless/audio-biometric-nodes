@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from .verificator import AudioInput
+from .types import AudioInput
 from transformers import AutoProcessor, VoxtralForConditionalGeneration
 
 import torch

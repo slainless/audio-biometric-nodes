@@ -5,7 +5,7 @@ import torch
 import torchaudio
 import numpy as np
 
-from .verificator import AudioInput
+from .types import AudioInput
 from speechbrain.inference import EncoderClassifier
 
 
