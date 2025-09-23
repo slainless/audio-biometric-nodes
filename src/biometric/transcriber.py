@@ -34,81 +34,68 @@ class KaldiIndonesianTranscriber(Transcriber):
         at target_sample_rate. Raises ValueError for unsupported formats or if scipy
         is required for resampling but not available.
         """
-        opened_here = False
-
         if isinstance(audio, (bytes, bytearray, memoryview)):
             fobj = io.BytesIO(audio)
-        elif isinstance(audio, (str, Path)):
-            fobj = open(audio, "rb")
-            opened_here = True
         else:
             fobj = audio
 
-        try:
-            with wave.open(fobj, "rb") as wf:
-                sr = wf.getframerate()
-                nch = wf.getnchannels()
-                sw = wf.getsampwidth()  # bytes per sample
-                nframes = wf.getnframes()
-                frames = wf.readframes(nframes)
+        with wave.open(fobj, "rb") as wf:
+            sr = wf.getframerate()
+            nch = wf.getnchannels()
+            sw = wf.getsampwidth()  # bytes per sample
+            nframes = wf.getnframes()
+            frames = wf.readframes(nframes)
 
-            # decode raw bytes into int array
-            if sw == 1:  # 8-bit PCM unsigned
-                samples = np.frombuffer(frames, dtype=np.uint8).astype(np.float32)
-                # convert unsigned 0..255 to -1..1
-                samples = (samples - 128.0) / 128.0
-            elif sw == 2:  # 16-bit signed
-                samples = (
-                    np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+        # decode raw bytes into int array
+        if sw == 1:  # 8-bit PCM unsigned
+            samples = np.frombuffer(frames, dtype=np.uint8).astype(np.float32)
+            # convert unsigned 0..255 to -1..1
+            samples = (samples - 128.0) / 128.0
+        elif sw == 2:  # 16-bit signed
+            samples = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+        elif sw == 3:  # 24-bit signed (little-endian)
+            # convert 3-byte chunks to int32 then to float
+            a = np.frombuffer(frames, dtype=np.uint8)
+            if a.size % 3 != 0:
+                raise ValueError("24-bit WAV has incomplete frames")
+            a = a.reshape(-1, 3)
+            # little endian -> construct int32
+            vals = (
+                a[:, 0].astype(np.int32)
+                | (a[:, 1].astype(np.int32) << 8)
+                | (a[:, 2].astype(np.int32) << 16)
+            )
+            # sign extend
+            sign_mask = 1 << 23
+            vals = np.where(vals & sign_mask, vals - (1 << 24), vals)
+            samples = vals.astype(np.float32) / float(1 << 23)
+        elif sw == 4:  # 32-bit signed
+            samples = (
+                np.frombuffer(frames, dtype=np.int32).astype(np.float32) / 2147483648.0
+            )
+        else:
+            raise ValueError(f"Unsupported sample width: {sw} bytes")
+
+        # handle multi-channel -> mono (average channels)
+        if nch > 1:
+            samples = samples.reshape(-1, nch).mean(axis=1)
+
+        # resample if needed
+        if sr != target_sample_rate:
+            if resample_poly is None:
+                raise ValueError(
+                    f"Input sample rate {sr} != target {target_sample_rate}. "
+                    "Install scipy (scipy.signal.resample_poly) or provide audio at the target rate."
                 )
-            elif sw == 3:  # 24-bit signed (little-endian)
-                # convert 3-byte chunks to int32 then to float
-                a = np.frombuffer(frames, dtype=np.uint8)
-                if a.size % 3 != 0:
-                    raise ValueError("24-bit WAV has incomplete frames")
-                a = a.reshape(-1, 3)
-                # little endian -> construct int32
-                vals = (
-                    a[:, 0].astype(np.int32)
-                    | (a[:, 1].astype(np.int32) << 8)
-                    | (a[:, 2].astype(np.int32) << 16)
-                )
-                # sign extend
-                sign_mask = 1 << 23
-                vals = np.where(vals & sign_mask, vals - (1 << 24), vals)
-                samples = vals.astype(np.float32) / float(1 << 23)
-            elif sw == 4:  # 32-bit signed
-                samples = (
-                    np.frombuffer(frames, dtype=np.int32).astype(np.float32)
-                    / 2147483648.0
-                )
-            else:
-                raise ValueError(f"Unsupported sample width: {sw} bytes")
+            # compute integer resample factors
+            # use resample_poly for good quality: up/down factors as integers
+            g = np.gcd(sr, target_sample_rate)
+            up = target_sample_rate // g
+            down = sr // g
+            samples = resample_poly(samples, up, down).astype(np.float32)
 
-            # handle multi-channel -> mono (average channels)
-            if nch > 1:
-                samples = samples.reshape(-1, nch).mean(axis=1)
-
-            # resample if needed
-            if sr != target_sample_rate:
-                if resample_poly is None:
-                    raise ValueError(
-                        f"Input sample rate {sr} != target {target_sample_rate}. "
-                        "Install scipy (scipy.signal.resample_poly) or provide audio at the target rate."
-                    )
-                # compute integer resample factors
-                # use resample_poly for good quality: up/down factors as integers
-                g = np.gcd(sr, target_sample_rate)
-                up = target_sample_rate // g
-                down = sr // g
-                samples = resample_poly(samples, up, down).astype(np.float32)
-
-            # ensure dtype float32
-            return samples.astype(np.float32)
-
-        finally:
-            if opened_here:
-                fobj.close()
+        # ensure dtype float32
+        return samples.astype(np.float32)
 
     def transcribe(self, audio: AudioInput) -> str:
         recognizer = sherpa_ncnn.Recognizer(
