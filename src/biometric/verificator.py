@@ -2,10 +2,6 @@ import io
 from typing import Protocol
 
 import numpy as np
-import torch
-import torchaudio
-from speechbrain.inference import EncoderClassifier
-from transformers import VoxtralForConditionalGeneration, AutoProcessor
 from pydantic import BaseModel
 
 type AudioInput = str | bytes | io.BytesIO
