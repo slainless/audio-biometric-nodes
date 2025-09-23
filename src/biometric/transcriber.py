@@ -1,6 +1,13 @@
-from .verificator import Transcriber, AudioInput
-import torch
+from typing import Protocol
+
+from .verificator import AudioInput
 from transformers import AutoProcessor, VoxtralForConditionalGeneration
+
+import torch
+
+
+class Transcriber(Protocol):
+    def transcribe(self, audio: AudioInput) -> str: ...
 
 
 class VoxtralTranscriber(Transcriber):

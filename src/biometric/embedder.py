@@ -5,8 +5,14 @@ import torch
 import torchaudio
 import numpy as np
 
-from .verificator import VoiceEmbedder, AudioInput
+from .verificator import AudioInput
 from speechbrain.inference import EncoderClassifier
+
+
+class VoiceEmbedder(Protocol):
+    def get_embeddings(self) -> dict[str, np.ndarray]: ...
+    def embed(self, audio: AudioInput) -> np.ndarray: ...
+    def calculate_similarity(self, emb1: np.ndarray, emb2: np.ndarray) -> float: ...
 
 
 class EmbeddingSource(Protocol):

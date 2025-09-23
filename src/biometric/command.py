@@ -1,5 +1,10 @@
+from typing import Protocol
+
 from difflib import SequenceMatcher
-from .verificator import CommandMatcher
+
+
+class CommandMatcher(Protocol):
+    def predict_command(self, transcription: str) -> str | None: ...
 
 
 class DiffCommandMatcher(CommandMatcher):

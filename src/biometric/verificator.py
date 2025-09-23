@@ -1,24 +1,12 @@
 import io
-from typing import Protocol
 
-import numpy as np
 from pydantic import BaseModel
 
+from .command import CommandMatcher
+from .embedder import VoiceEmbedder
+from .transcriber import Transcriber
+
 type AudioInput = str | bytes | io.BytesIO
-
-
-class CommandMatcher(Protocol):
-    def predict_command(self, transcription: str) -> str | None: ...
-
-
-class VoiceEmbedder(Protocol):
-    def get_embeddings(self) -> dict[str, np.ndarray]: ...
-    def embed(self, audio: AudioInput) -> np.ndarray: ...
-    def calculate_similarity(self, emb1: np.ndarray, emb2: np.ndarray) -> float: ...
-
-
-class Transcriber(Protocol):
-    def transcribe(self, audio: AudioInput) -> str: ...
 
 
 class VerificationResult(BaseModel):
