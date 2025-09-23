@@ -184,25 +184,27 @@ bool Mqtt::subscribe(const char *topic,
         char messageType[5] = {0};
         __assert_read(reinterpret_cast<uint8_t *>(messageType), 4);
 
-        if (!strncmp(messageType, MqttMessageType::MESSAGE, 4))
+        if (strncmp(messageType, MqttMessageType::MESSAGE, 4) != 0)
         {
-          Serial.printf("Receiving non-message type MQTT message: %d\n", messageType);
+          Serial.printf("Receiving non-message type MQTT message: %s\n", messageType);
+          return;
         }
 
         uint8_t idSize;
         __assert_read(&idSize, 1);
 
-        char id[idSize + 1];
+        char id[idSize + 1] = {0};
         __assert_read(reinterpret_cast<uint8_t *>(id), idSize);
 
-        if (!strncmp(id, MqttIdentifier::SERVER, idSize))
+        if (strncmp(id, MqttIdentifier::SERVER, idSize) != 0)
         {
           Serial.printf("Received MQTT message from source other than server: %s\n", id);
           return;
         }
 
         size_t payloadSize = messageSize - 5 - idSize;
-        char payload[payloadSize + 1];
+        char payload[payloadSize + 1] = {0};
+        __assert_read(reinterpret_cast<uint8_t *>(payload), payloadSize);
 
         Serial.printf("Receiving MQTT message of size %d from %s with content:\n%s\n", payloadSize, id, payload);
         cb(payload);
