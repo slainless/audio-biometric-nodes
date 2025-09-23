@@ -24,6 +24,10 @@ class Verificator:
         # Whether to stop verification on first successful embedding match
         stop_at_verified=False,
     ) -> VerificationResult:
+        with open("debug.wav", "wb") as f:
+            if isinstance(audio, (bytes, bytearray, memoryview)):
+                f.write(audio)
+
         embeddings = self.embedder.get_embeddings()
         input = self.embedder.embed(audio)
 
