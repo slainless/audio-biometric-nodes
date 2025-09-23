@@ -8,7 +8,7 @@
 #include "core/record.h"
 #include "setup/wifi.h"
 
-#include "device/recorder.h"
+#include "device/recorder/recorder.h"
 
 #include <Arduino.h>
 #include <SPIFFS.h>
