@@ -23,6 +23,8 @@ Each sample needs to be shifted and then written to the buffer. The recording pr
 that straightforward since the system is ran on top of bare ESP32 without PSRAM so it needs to write
 to flash first before sending the audio.
 
+The resulting audio is a Mono 16KHz sampled 24-bit WAV.
+
 ### Audio Transmission
 
 Since the audio is stored in flash, the upload process is also done in chunking fashion, 
