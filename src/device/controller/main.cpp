@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "core/mqtt.h"
 #include "mqtt/protocol.h"
 #include "setup/wifi.h"
@@ -6,17 +8,31 @@
 
 #include <SPIFFS.h>
 
+#define SWITCH_PIN 15
+
 Mqtt mqtt(CONTROLLER_IDENTIFIER);
 
 void subscribeMqtt()
 {
-  mqtt.subscribe(MqttTopic::CONTROLLER, [](const char *msg)
-                 { Serial.printf("Received message: %s\n", msg); });
+  mqtt.subscribe(
+      MqttTopic::CONTROLLER,
+      [](const char *msg)
+      {
+        if (strcmp(msg, MqttControllerCommand::ON) == 0)
+        {
+          digitalWrite(SWITCH_PIN, HIGH);
+        }
+        else if (strcmp(msg, MqttControllerCommand::OFF) == 0)
+        {
+          digitalWrite(SWITCH_PIN, LOW);
+        }
+      });
 }
 
 void setup()
 {
   Serial.begin(115200);
+  pinMode(SWITCH_PIN, OUTPUT);
 
   if (!SPIFFS.begin(true))
   {
