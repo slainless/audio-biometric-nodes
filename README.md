@@ -69,13 +69,13 @@ sequenceDiagram
     critical Speaker verification
       Server->>Server: Calculating embedding
     option Not verified
-      Server->>Server: Dropping message
+      Server-xServer: Dropping message
     end
 
     critical Command verification
       Server->>Server: Matching command
     option Not matching
-      Server->>Server: Dropping message
+      Server-xServer: Dropping message
     end
 
     Server->>-MQTT Broker: Command
