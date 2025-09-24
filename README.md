@@ -121,7 +121,7 @@ and `controller` for the peripheral microcontroller.
 ### Quick Run
 
 1. Start mosquitto MQTT broker server
-2. Start server with `uvicorn src.server.main`
+2. Start server with `uvicorn src.server.main:app`
 3. Setup wifi and mqtt for each microcontrollers using `wifi` and `mqtt` command respectively.
    Connect to serial port then sent those commands after the controller done booting.
 4. For mqtt configuration, use `localhost` or `ip.add.re.ss` of your mosquitto broker. 
