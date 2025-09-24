@@ -3,6 +3,7 @@
 #include "core/mqtt.h"
 #include "mqtt/protocol.h"
 #include "setup/wifi.h"
+#include "setup/spiffs.h"
 
 #include "device/controller/controller.h"
 
@@ -34,17 +35,7 @@ void setup()
   Serial.begin(115200);
   pinMode(SWITCH_PIN, OUTPUT);
 
-  if (!SPIFFS.begin(true))
-  {
-    while (true)
-    {
-      Serial.println("These components are missing:");
-      Serial.println("- SPIFFS");
-      Serial.println();
-      delay(1000);
-    }
-  }
-
+  setupSPIFFS();
   setupWiFi();
   setupMqtt(mqtt);
   subscribeMqtt();

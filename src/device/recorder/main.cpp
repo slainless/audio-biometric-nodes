@@ -7,6 +7,7 @@
 #include "core/mqtt.h"
 #include "core/record.h"
 #include "setup/wifi.h"
+#include "setup/spiffs.h"
 
 #include "device/recorder/recorder.h"
 
@@ -23,17 +24,7 @@ void setup()
   Serial.begin(115200);
   recorder.begin(RECORDER_SAMPLE_RATE);
 
-  if (!SPIFFS.begin(true))
-  {
-    while (true)
-    {
-      Serial.println("These components are missing:");
-      Serial.println("- SPIFFS");
-      Serial.println();
-      delay(1000);
-    }
-  }
-
+  setupSPIFFS();
   setupWiFi();
   setupMqtt(mqtt);
 }
