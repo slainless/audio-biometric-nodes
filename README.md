@@ -40,6 +40,27 @@ For audio processing:
 - Speechbrain model `speechbrain/spkrec-ecapa-voxceleb` to embed the audio
 - OpenAI's Whisper model `base` to process transcription
 
+For now, the command matching process is pretty simple and naive, simply using diffing logic.
+It can be evolved into a more sophisticated version, by doing a single pass to LLM using [dspy](https://dspy.ai/),
+skipping the transcribing process entirely:
+
+```
+class Command(dspy.Signature):
+  """
+  Specify the command
+  """
+
+  audio: dspy.Audio = dspy.InputField()
+  command: Literal["lamp_on", "lamp_off", "unknown"] = dspy.OutputField()
+
+command = dspy.Predict(Command)
+
+result = command(recording)
+print(f"Command received: {result.command}")
+```
+
+Another alternative is to use transcription result as the input instead of the audio directly.
+
 ### MQTT Payload Format
 
 ```
