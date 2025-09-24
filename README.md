@@ -41,10 +41,10 @@ For audio processing:
 - OpenAI's Whisper model `base` to process transcription
 
 For now, the command matching process is pretty simple and naive, simply using diffing logic.
-It can be evolved into a more sophisticated version, by doing a single pass to LLM using [dspy](https://dspy.ai/),
+Though, it can be evolved into a more sophisticated version, by doing a single pass to LLM using [dspy](https://dspy.ai/),
 skipping the transcribing process entirely:
 
-```
+```py
 class Command(dspy.Signature):
   """
   Specify the command
