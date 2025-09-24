@@ -79,3 +79,27 @@ sequenceDiagram
     MQTT Broker->>Controller: Command
     Controller->>+Lamp: ON/OFF
 ```
+
+## Setup
+
+It is recommended to start Mosquitto broker either by installing it as service
+or using provided compose.
+
+It is also recommended to use virtual environment. 
+Run `python -m venv .venv`, then bootstrap the current terminal with venv.
+
+After that, install python requirements by running `pip -r ./requirements`.
+
+For the microcontrollers, flash the program using appropriate environment 
+such as `recorder` for the recorder microcontroller 
+and `controller` for the peripheral microcontroller.
+
+## Quick Run
+
+1. Start mosquitto MQTT broker server
+2. Start server with `uvicorn src.server.main`
+3. Setup wifi and mqtt for each microcontrollers using `wifi` and `mqtt` command respectively.
+4. For mqtt configuration, use `localhost` or `ip.add.re.ss` of your mosquitto broker. 
+   Then use port `1883` or other if using custom port.
+5. Send `record` command to recorder serial port to start recording.
+6. The server should receive the recording, verifying it, then send command to controller if successful.
