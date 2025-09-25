@@ -77,7 +77,6 @@ void recordToMqtt(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin)
             return;
           }
 
-          Serial.println("BLINKING");
           lastMillis = current;
           if (pinState == HIGH)
           {
