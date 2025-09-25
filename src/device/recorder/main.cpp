@@ -29,7 +29,7 @@ void setup()
   setupMqtt(mqtt);
 }
 
-void reconnectHandler() { reconnectMqtt(mqtt); }
+void mqttReconnectHandler() { reconnectMqtt(mqtt); }
 
 void loop()
 {
@@ -43,7 +43,7 @@ void loop()
     Serial.println("WiFi is not connected, please setup wifi");
   }
 
-  mqtt.poll(reconnectHandler);
+  mqtt.poll(mqttReconnectHandler);
 
   auto cmd = Serial.readStringUntil('\n');
   cmd.trim();
