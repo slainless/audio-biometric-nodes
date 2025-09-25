@@ -3,6 +3,8 @@
 #include <SPIFFS.h>
 #include <driver/i2s.h>
 
+using RecordingCallback = std::function<void(const int32_t *data)>;
+
 class Recorder
 {
 public:
@@ -10,7 +12,7 @@ public:
 
   void begin(uint32_t sampleRate);
   void end();
-  bool readToFile(File &file, size_t bufferSize, unsigned long durationMs);
+  bool readToFile(File &file, size_t bufferSize, unsigned long durationMs, RecordingCallback callback = nullptr);
 
 private:
   i2s_port_t deviceIndex;

@@ -100,7 +100,7 @@ void writeSamples(
 }
 
 bool Recorder::readToFile(File &file, size_t bufferSize,
-                          unsigned long durationMs)
+                          unsigned long durationMs, RecordingCallback callback)
 {
   if (bufferSize % bytesPerSample != 0)
   {
@@ -135,6 +135,11 @@ bool Recorder::readToFile(File &file, size_t bufferSize,
 
     writeSamples(bytesRead, samplingBuffer.data(), bytesWritten,
                  fsWriteBuffer, sizeof(fsWriteBuffer), file);
+
+    if (callback)
+    {
+      callback(samplingBuffer.data());
+    }
 
     yield();
   }
