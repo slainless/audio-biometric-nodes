@@ -4,6 +4,8 @@
 #define RECORDER_SCK_PIN 33
 #define RECORDER_WS_PIN 25
 
+#define BUILTIN_LED_PIN 2
+
 #include "core/mqtt.h"
 #include "core/record.h"
 #include "setup/wifi.h"
@@ -21,6 +23,7 @@ Recorder recorder(I2S_NUM_0, RECORDER_SD_PIN, RECORDER_SCK_PIN,
 
 void setup()
 {
+  pinMode(BUILTIN_LED_PIN, OUTPUT);
   Serial.begin(115200);
   recorder.begin(RECORDER_SAMPLE_RATE);
 
@@ -52,5 +55,5 @@ void loop()
   if (cmd.equalsIgnoreCase("mqtt"))
     return configureMqtt(mqtt);
   if (cmd.equalsIgnoreCase("record"))
-    return recordToMqtt(recorder, mqtt);
+    return recordToMqtt(recorder, mqtt, BUILTIN_LED_PIN);
 }

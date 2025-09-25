@@ -37,7 +37,7 @@ int publishRecordingToMqtt(File &file, Mqtt &mqtt, uint32_t bufferSize)
   return 0;
 }
 
-void recordToMqtt(Recorder &recorder, Mqtt &mqtt)
+void recordToMqtt(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin)
 {
   if (!mqtt.client)
   {
@@ -59,7 +59,43 @@ void recordToMqtt(Recorder &recorder, Mqtt &mqtt)
   }
 
   Serial.println("Recording started for 5 seconds...");
-  recorder.readToFile(write, RECORDER_BUFFER_SIZE, RECORDER_DURATION);
+
+  auto initialPinState = digitalRead(blinkingPin);
+  auto pinState = initialPinState;
+  auto lastMillis = millis();
+  recorder.readToFile(
+      write,
+      RECORDER_BUFFER_SIZE,
+      RECORDER_DURATION,
+      [blinkingPin, &lastMillis, &pinState](const int32_t *data)
+      {
+        if (blinkingPin != 0)
+        {
+          auto current = millis();
+          if (current - lastMillis <= 500)
+          {
+            return;
+          }
+
+          Serial.println("BLINKING");
+          lastMillis = current;
+          if (pinState == HIGH)
+          {
+            digitalWrite(blinkingPin, LOW);
+            pinState = LOW;
+          }
+          else
+          {
+            digitalWrite(blinkingPin, HIGH);
+            pinState = HIGH;
+          }
+        }
+      });
+  if (blinkingPin != 0)
+  {
+    digitalWrite(blinkingPin, initialPinState);
+  }
+
   write.close();
 
   auto read = SPIFFS.open(WAV_FILE_PATH, FILE_READ);
