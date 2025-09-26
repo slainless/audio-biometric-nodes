@@ -42,8 +42,10 @@ extern "C"
   _MQX(CONTROLLER, "audio_biometric/slainless/device/controller")
 
 #define MQTT_CONTROLLER_COMMAND_LIST \
-  _MQX(ON, "on")                     \
-  _MQX(OFF, "off")
+  _MQX(LAMP_ON, "lamp_on")           \
+  _MQX(LAMP_OFF, "lamp_off")         \
+  _MQX(FAN_ON, "fan_on")             \
+  _MQX(FAN_OFF, "fan_off")
 
 #define MQTT_IDENTIFIER_LIST \
   _MQX(SERVER, "biometric-server")

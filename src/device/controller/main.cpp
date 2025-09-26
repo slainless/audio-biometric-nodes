@@ -9,7 +9,8 @@
 
 #include <SPIFFS.h>
 
-#define SWITCH_PIN 15
+#define LAMP_SWITCH_PIN 15
+#define FAN_SWITCH_PIN 18
 
 Mqtt mqtt(CONTROLLER_IDENTIFIER);
 
@@ -19,13 +20,21 @@ void subscribeMqtt()
       MqttTopic::CONTROLLER,
       [](const char *msg)
       {
-        if (strcmp(msg, MqttControllerCommand::ON) == 0)
+        if (strcmp(msg, MqttControllerCommand::LAMP_ON) == 0)
         {
-          digitalWrite(SWITCH_PIN, HIGH);
+          digitalWrite(LAMP_SWITCH_PIN, HIGH);
         }
-        else if (strcmp(msg, MqttControllerCommand::OFF) == 0)
+        else if (strcmp(msg, MqttControllerCommand::LAMP_OFF) == 0)
         {
-          digitalWrite(SWITCH_PIN, LOW);
+          digitalWrite(LAMP_SWITCH_PIN, LOW);
+        }
+        else if (strcmp(msg, MqttControllerCommand::FAN_ON) == 0)
+        {
+          digitalWrite(FAN_SWITCH_PIN, HIGH);
+        }
+        else if (strcmp(msg, MqttControllerCommand::FAN_OFF) == 0)
+        {
+          digitalWrite(FAN_SWITCH_PIN, LOW);
         }
       });
 }
@@ -33,7 +42,8 @@ void subscribeMqtt()
 void setup()
 {
   Serial.begin(115200);
-  pinMode(SWITCH_PIN, OUTPUT);
+  pinMode(LAMP_SWITCH_PIN, OUTPUT);
+  pinMode(FAN_SWITCH_PIN, OUTPUT);
 
   setupSPIFFS();
   setupWiFi();
