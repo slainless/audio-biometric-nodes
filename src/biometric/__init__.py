@@ -2,7 +2,12 @@ from .verificator import Verificator
 
 from .types import VerificationResult, AudioInput
 
-from .embedder import SpeechbrainEmbedder, EmbeddingSource, VoiceEmbedder
+from .embedder import (
+    SpeechbrainEmbedder,
+    SpeakerWavLMEmbedder,
+    EmbeddingSource,
+    VoiceEmbedder,
+)
 from .source import FileEmbeddingSource
 from .transcriber import (
     VoxtralTranscriber,
@@ -17,6 +22,7 @@ __all__ = [
     "VerificationResult",
     "AudioInput",
     "SpeechbrainEmbedder",
+    "SpeakerWavLMEmbedder",
     "FileEmbeddingSource",
     "VoxtralTranscriber",
     "KaldiIndonesianTranscriber",

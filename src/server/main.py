@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI
 
 from ..biometric import (
+    SpeakerWavLMEmbedder,
     SpeechbrainEmbedder,
     WhisperTranscriber,
     DiffCommandMatcher,
@@ -32,6 +33,8 @@ _logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 embedding_source = FileEmbeddingSource(EMBEDDING_FILE_PATH)
+# embedder = SpeechbrainEmbedder(embedding_source)
+embedder = SpeakerWavLMEmbedder(embedding_source)
 command_matcher = DiffCommandMatcher(
     {
         "nyalakan lampu": Protocol.MqttControllerCommand.LAMP_ON,
@@ -46,9 +49,7 @@ command_matcher = DiffCommandMatcher(
         "kipas mati": Protocol.MqttControllerCommand.FAN_OFF,
     }
 )
-verificator = Verificator(
-    command_matcher, SpeechbrainEmbedder(embedding_source), WhisperTranscriber()
-)
+verificator = Verificator(command_matcher, embedder, WhisperTranscriber())
 
 mqtt_server = MqttServer(
     MQTT_BROKER_HOST, MQTT_BROKER_PORT, RECORDER_TOPIC, MQTT_KEEPALIVE

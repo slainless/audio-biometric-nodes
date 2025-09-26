@@ -14,3 +14,4 @@ sherpa-ncnn
 sherpa-ncnn-bin
 python-multipart
 openai-whisper
+spk_embeddings
