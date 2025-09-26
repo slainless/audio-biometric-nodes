@@ -1,5 +1,4 @@
 import torch
-import torchaudio
 import torch.nn as nn
 from transformers.models.wavlm.modeling_wavlm import WavLMPreTrainedModel, WavLMModel
 
@@ -47,14 +46,3 @@ class EmbeddingsModel(WavLMPreTrainedModel):
         x_stats = torch.cat((base_out.mean(dim=1), v.pow(0.5)), dim=1).unsqueeze(dim=2)
         # top layers fwd
         return self.top_layers(x_stats)
-
-
-def compute_embedding(fnm, model, max_size=320000):
-    sig, sr = torchaudio.load(fnm)
-    assert sr == 16000, "please convert your audio file to a sampling rate of 16 kHz"
-    sig = sig.mean(dim=0)
-    if sig.shape[0] > max_size:
-        print(f"truncating long signal {fnm}")
-        sig = sig[:max_size]
-    embd = model(sig.unsqueeze(dim=0))
-    return embd.clone().detach()
