@@ -1,5 +1,7 @@
 #include "core/record.h"
 #include "core/mqtt.h"
+#include "core/led.h"
+
 #include "mqtt/protocol.h"
 
 #include <SPIFFS.h>
@@ -60,40 +62,17 @@ void recordToMqtt(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin)
 
   Serial.println("Recording started for 5 seconds...");
 
-  auto initialPinState = digitalRead(blinkingPin);
-  auto pinState = initialPinState;
-  auto lastMillis = millis();
+  auto blink = createBlinker(blinkingPin);
   recorder.readToFile(
       write,
       RECORDER_BUFFER_SIZE,
       RECORDER_DURATION,
-      [blinkingPin, &lastMillis, &pinState](const int32_t *data)
+      [blink](const int32_t *data)
       {
-        if (blinkingPin != 0)
-        {
-          auto current = millis();
-          if (current - lastMillis <= 500)
-          {
-            return;
-          }
-
-          lastMillis = current;
-          if (pinState == HIGH)
-          {
-            digitalWrite(blinkingPin, LOW);
-            pinState = LOW;
-          }
-          else
-          {
-            digitalWrite(blinkingPin, HIGH);
-            pinState = HIGH;
-          }
-        }
+        blink(0);
       });
-  if (blinkingPin != 0)
-  {
-    digitalWrite(blinkingPin, initialPinState);
-  }
+
+  blink(1);
 
   write.close();
 
