@@ -1,5 +1,5 @@
 #include "core/mqtt.h"
-#include "core/flash.h"
+#include "core/filesystem.h"
 #include "core/serial.h"
 #include "mqtt/protocol.h"
 
@@ -7,11 +7,14 @@
 #include <MqttClient.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
+#include <esp_log.h>
 
 #include <cstring>
 #include <functional>
 
-#define MQTT_CONFIG_PATH "/mqtt.bin"
+#define MQTT_CONFIG_PATH "/spiffs/mqtt.bin"
+
+static const char *TAG = "MQTT";
 
 #define isClientReady                                                    \
   if (!client)                                                           \
@@ -19,15 +22,6 @@
     Serial.println("MQTT client is not initialized, please setup mqtt"); \
     return false;                                                        \
   }
-
-struct MqttConfig
-{
-  char host[64];
-  uint16_t port;
-  bool useSsl;
-};
-
-MqttConfig mqttConfig;
 
 Mqtt::Mqtt(const char *identifier)
     : identifier(identifier), stampSize(strlen(identifier))
@@ -55,6 +49,11 @@ bool Mqtt::connect(const char *host, uint16_t port, bool secure)
   return true;
 }
 
+bool Mqtt::connect(MqttConfig &config)
+{
+  return connect(config.host, config.port, config.useSsl);
+}
+
 void Mqtt::poll(std::function<void()> connectCallback)
 {
   if (client)
@@ -63,7 +62,7 @@ void Mqtt::poll(std::function<void()> connectCallback)
     {
       if (connectCallback)
       {
-        Serial.println("MQTT client not connected, calling connect callback");
+        ESP_LOGI(TAG, "MQTT client not connected, calling connect callback");
         connectCallback();
       }
     }
@@ -143,16 +142,16 @@ int Mqtt::stamp(const char *protocol)
   return 0;
 };
 
-bool Mqtt::subscribe(const char *topic,
-                     std::function<void(const char *message)> cb)
+int Mqtt::subscribe(const char *topic,
+                    std::function<void(const char *message)> cb)
 {
   isClientReady;
 
   auto res = client->subscribe(topic, 0);
   if (res != 1)
   {
-    Serial.printf("Failed to subscribe to MQTT server (topic: %s) with code: %d\n", topic, res);
-    return false;
+    ESP_LOGE(TAG, "Failed to subscribe to MQTT server (topic: %s) with code: %d", topic, res);
+    return res;
   }
 
   client->onMessage(
@@ -215,66 +214,75 @@ bool Mqtt::subscribe(const char *topic,
   return true;
 }
 
-void reconnectMqtt(Mqtt &mqtt)
+namespace MqttConfigurer
 {
-  if (mqttConfig.host[0] == '\0')
+  int reconnect(MqttConfig &config, Mqtt &mqtt)
   {
-    Serial.println("MQTT broker host is not set, skipping reconnect");
-    return;
+    if (config.host[0] == '\0')
+    {
+      ESP_LOGI(TAG, "MQTT broker host is not set, skipping reconnect");
+      return 1;
+    }
+
+    ESP_LOGI(TAG, "Connecting to %s:%d with SSL: %d", config.host,
+             config.port, (int)config.useSsl);
+    if (!mqtt.connect(config.host, config.port, config.useSsl))
+    {
+      auto code = mqtt.client->connectError();
+      ESP_LOGE(TAG, "MQTT connection failed with code: %d", code);
+      return code;
+    }
+
+    return ESP_OK;
+  };
+
+  int setup(MqttConfig &config, Mqtt &mqtt)
+  {
+    ESP_LOGI(TAG, "Loading Mqtt configuration from flash");
+    if (FileSystem::load(MQTT_CONFIG_PATH, reinterpret_cast<unsigned char *>(&config),
+                         sizeof(MqttConfig)))
+    {
+      ESP_LOGI(TAG, "Mqtt configuration loaded");
+      MqttConfigurer::reconnect(config, mqtt);
+    }
+
+    return ESP_OK;
   }
 
-  Serial.printf("Connecting to %s:%d with SSL: %b\n", mqttConfig.host,
-                mqttConfig.port, mqttConfig.useSsl);
-  if (!mqtt.connect(mqttConfig.host, mqttConfig.port, mqttConfig.useSsl))
+  int serialPrompt(MqttConfig &config, Mqtt &mqtt)
   {
-    Serial.print("MQTT connection failed! Error code = ");
-    Serial.println(mqtt.client->connectError());
-  }
-};
+    Serial.print("Broker host: ");
+    auto host = blockingReadStringUntil('\n');
+    Serial.println(host);
 
-void setupMqtt(Mqtt &mqtt)
-{
-  Serial.println("Loading Mqtt configuration from flash");
-  if (load(MQTT_CONFIG_PATH, reinterpret_cast<unsigned char *>(&mqttConfig),
-           sizeof(MqttConfig)))
-  {
-    Serial.println("Mqtt configuration loaded");
-    reconnectMqtt(mqtt);
+    Serial.print("Broker port: ");
+    auto port = blockingReadStringUntil('\n');
+    Serial.println(port);
+
+    Serial.print("Use SSL?: (y/n) ");
+    auto useSsl = blockingReadStringUntil('\n');
+    Serial.println(useSsl);
+
+    host.trim();
+    port.trim();
+    useSsl.trim();
+
+    host.toCharArray(config.host, sizeof(config.host));
+    config.port = port.toInt();
+    config.useSsl = useSsl.equalsIgnoreCase("y");
+
+    ESP_LOGI(TAG, "Saving Mqtt configuration to flash");
+    if (FileSystem::store(MQTT_CONFIG_PATH, reinterpret_cast<unsigned char *>(&config),
+                          sizeof(config)))
+    {
+      ESP_LOGI(TAG, "Mqtt configuration saved");
+    }
+    else
+    {
+      ESP_LOGE(TAG, "Failed to save Mqtt configuration to flash");
+    }
+
+    reconnect(config, mqtt);
+    return ESP_OK;
   }
 }
-
-void configureMqtt(Mqtt &mqtt)
-{
-  Serial.print("Broker host: ");
-  auto host = blockingReadStringUntil('\n');
-  Serial.println(host);
-
-  Serial.print("Broker port: ");
-  auto port = blockingReadStringUntil('\n');
-  Serial.println(port);
-
-  Serial.print("Use SSL?: (y/n) ");
-  auto useSsl = blockingReadStringUntil('\n');
-  Serial.println(useSsl);
-
-  host.trim();
-  port.trim();
-  useSsl.trim();
-
-  host.toCharArray(mqttConfig.host, sizeof(mqttConfig.host));
-  mqttConfig.port = port.toInt();
-  mqttConfig.useSsl = useSsl.equalsIgnoreCase("y");
-
-  Serial.println("Saving Mqtt configuration to flash");
-  if (store(MQTT_CONFIG_PATH, reinterpret_cast<unsigned char *>(&mqttConfig),
-            sizeof(MqttConfig)))
-  {
-    Serial.println("Mqtt configuration saved");
-  }
-  else
-  {
-    Serial.println("Failed to save Mqtt configuration to flash");
-  }
-
-  reconnectMqtt(mqtt);
-};

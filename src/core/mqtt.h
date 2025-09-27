@@ -15,12 +15,20 @@
     return code;                                                   \
   }
 
+struct MqttConfig
+{
+  char host[64];
+  uint16_t port;
+  bool useSsl;
+};
+
 class Mqtt
 {
 public:
   std::unique_ptr<MqttClient> client;
   Mqtt(const char *identifier);
 
+  bool connect(MqttConfig &config);
   bool connect(const char *host, uint16_t port, bool secure);
   void poll(std::function<void()> connectCallback = nullptr);
 
@@ -30,8 +38,8 @@ public:
   int publishFragmentBody(const char *topic, const uint8_t *body, size_t size);
   int publishFragmentTrailer(const char *topic);
 
-  bool subscribe(const char *topic,
-                 std::function<void(const char *message)> cb);
+  int subscribe(const char *topic,
+                std::function<void(const char *message)> cb);
 
 private:
   const char *identifier;
@@ -43,6 +51,9 @@ private:
   int stamp(const char *protocol);
 };
 
-void setupMqtt(Mqtt &mqtt);
-void configureMqtt(Mqtt &mqtt);
-void reconnectMqtt(Mqtt &mqtt);
+namespace MqttConfigurer
+{
+  int setup(MqttConfig &mqttConfig, Mqtt &mqtt);
+  int serialPrompt(MqttConfig &mqttConfig, Mqtt &mqtt);
+  int reconnect(MqttConfig &mqttConfig, Mqtt &mqtt);
+}
