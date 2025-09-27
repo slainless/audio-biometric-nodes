@@ -12,6 +12,7 @@
 #include "setup/spiffs.h"
 
 #include "device/recorder/recorder.h"
+#include "device/recorder/control.h"
 
 #include <Arduino.h>
 #include <SPIFFS.h>
@@ -23,6 +24,7 @@ Recorder recorder(I2S_NUM_0, RECORDER_SD_PIN, RECORDER_SCK_PIN,
 
 void setup()
 {
+  RemoteXY_Init();
   pinMode(BUILTIN_LED_PIN, OUTPUT);
   Serial.begin(115200);
   recorder.begin(RECORDER_SAMPLE_RATE);
@@ -34,26 +36,42 @@ void setup()
 
 void reconnectHandler() { reconnectMqtt(mqtt); }
 
+#define polling(timeContainer, pollTime, codeBlock) \
+  if (millis() - timeContainer >= pollTime)         \
+  {                                                 \
+    codeBlock;                                      \
+    (timeContainer) = millis();                     \
+  }
+
+auto lastMqttPoll = millis();
+auto lastConnectionCheck = millis();
+
 void loop()
 {
-  if (!mqtt.client)
-  {
-    Serial.println("MQTT client is not initialized, please setup mqtt");
-  }
+  RemoteXY_Handler();
 
-  if (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.println("WiFi is not connected, please setup wifi");
-  }
+  polling(lastConnectionCheck, 1000, {
+    if (!mqtt.client)
+    {
+      Serial.println("MQTT client is not initialized, please setup mqtt");
+    }
 
-  mqtt.poll(reconnectHandler);
+    if (WiFi.status() != WL_CONNECTED)
+    {
+      Serial.println("WiFi is not connected, please setup wifi");
+    }
+  });
 
-  auto cmd = Serial.readStringUntil('\n');
-  cmd.trim();
-  if (cmd.equalsIgnoreCase("wifi"))
-    return configureWiFi();
-  if (cmd.equalsIgnoreCase("mqtt"))
-    return configureMqtt(mqtt);
-  if (cmd.equalsIgnoreCase("record"))
-    return recordToMqtt(recorder, mqtt, BUILTIN_LED_PIN);
+  polling(lastMqttPoll, 1000, {
+    mqtt.poll(reconnectHandler);
+  });
+
+  // auto cmd = Serial.readStringUntil('\n');
+  // cmd.trim();
+  // if (cmd.equalsIgnoreCase("wifi"))
+  //   return configureWiFi();
+  // if (cmd.equalsIgnoreCase("mqtt"))
+  //   return configureMqtt(mqtt);
+  // if (cmd.equalsIgnoreCase("record"))
+  //   return recordToMqtt(recorder, mqtt, BUILTIN_LED_PIN);
 }
