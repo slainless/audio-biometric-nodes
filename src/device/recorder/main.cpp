@@ -1,5 +1,3 @@
-#define RECORDER_SAMPLE_RATE 8000
-
 #define RECORDER_SD_PIN 32
 #define RECORDER_SCK_PIN 33
 #define RECORDER_WS_PIN 25
@@ -8,49 +6,28 @@
 
 #include "core/mqtt.h"
 #include "core/record.h"
-#include "setup/wifi.h"
-#include "setup/spiffs.h"
+#include "core/wifi.h"
+#include "core/filesystem.h"
+#include "core/utils.h"
 
 #include "device/recorder/recorder.h"
 #include "device/recorder/control.h"
 
 #include <Arduino.h>
-#include <SPIFFS.h>
+#include <esp_log.h>
 #include <driver/i2s.h>
+
+WiFiConfig wifiConfig;
+MqttConfig mqttConfig;
 
 Mqtt mqtt(RECORDER_IDENTIFIER);
 Recorder recorder(I2S_NUM_0, RECORDER_SD_PIN, RECORDER_SCK_PIN,
                   RECORDER_WS_PIN);
 
-void setup()
+void readinessNotifierHandle(void *pvParameters)
 {
-  RemoteXY_Init();
-  pinMode(BUILTIN_LED_PIN, OUTPUT);
-  Serial.begin(115200);
-  recorder.begin(RECORDER_SAMPLE_RATE);
-
-  setupSPIFFS();
-  setupWiFi();
-  setupMqtt(mqtt);
-}
-
-void reconnectHandler() { reconnectMqtt(mqtt); }
-
-#define polling(timeContainer, pollTime, codeBlock) \
-  if (millis() - timeContainer >= pollTime)         \
-  {                                                 \
-    codeBlock;                                      \
-    (timeContainer) = millis();                     \
-  }
-
-auto lastMqttPoll = millis();
-auto lastConnectionCheck = millis();
-
-void loop()
-{
-  RemoteXY_Handler();
-
-  polling(lastConnectionCheck, 1000, {
+  while (true)
+  {
     if (!mqtt.client)
     {
       Serial.println("MQTT client is not initialized, please setup mqtt");
@@ -60,18 +37,57 @@ void loop()
     {
       Serial.println("WiFi is not connected, please setup wifi");
     }
-  });
 
-  polling(lastMqttPoll, 1000, {
-    mqtt.poll(reconnectHandler);
-  });
+    __printHighWaterMark;
+    vTaskDelay(pdMS_TO_TICKS(2000));
+  }
+}
 
-  // auto cmd = Serial.readStringUntil('\n');
-  // cmd.trim();
-  // if (cmd.equalsIgnoreCase("wifi"))
-  //   return configureWiFi();
-  // if (cmd.equalsIgnoreCase("mqtt"))
-  //   return configureMqtt(mqtt);
-  // if (cmd.equalsIgnoreCase("record"))
-  //   return recordToMqtt(recorder, mqtt, BUILTIN_LED_PIN);
+void mqttPollerHandle(void *pvParameters)
+{
+  auto lastReconnectAttempt = millis();
+  auto lastHWCheck = millis();
+  while (true)
+  {
+    mqtt.poll(
+        [&lastReconnectAttempt]
+        {
+          if (millis() - lastReconnectAttempt >= 1000)
+          {
+            MqttConfigurer::reconnect(mqttConfig, mqtt);
+            lastReconnectAttempt = millis();
+          }
+        });
+
+    if (millis() - lastHWCheck >= 1000)
+    {
+      __printHighWaterMark;
+      lastHWCheck = millis();
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+  }
+}
+
+void setup()
+{
+  esp_log_level_set("*", ESP_LOG_DEBUG);
+
+  RemoteXY_Init();
+  pinMode(BUILTIN_LED_PIN, OUTPUT);
+  Serial.begin(115200);
+  recorder.begin(RECORDER_SAMPLE_RATE);
+
+  int code;
+  ensureSetup(code, FileSystem::setup(), "SPIFFS");
+  ensureSetup(code, WiFiConfigurer::setup(wifiConfig), "WiFi");
+  ensureSetup(code, MqttConfigurer::setup(mqttConfig, mqtt), "MQTT");
+
+  xTaskCreate(readinessNotifierHandle, "ReadinessNotifier", 1024, nullptr, 1, nullptr);
+  xTaskCreate(mqttPollerHandle, "MqttPoller", 2048, nullptr, 1, nullptr);
+}
+
+void loop()
+{
+  RemoteXY_Handler();
 }
