@@ -3,14 +3,9 @@
 #include <driver/i2s.h>
 #include <vector>
 
-constexpr i2s_channel_t channelMode = I2S_CHANNEL_MONO;
-constexpr i2s_bits_per_sample_t bitsPerSample = I2S_BITS_PER_SAMPLE_32BIT;
-constexpr i2s_bits_per_sample_t hardwareBitsPerSample = I2S_BITS_PER_SAMPLE_24BIT;
-constexpr uint8_t bytesPerSample = bitsPerSample / 8 * channelMode; // (bitsPerSample / 8) * channelMode
-constexpr uint8_t validBytesPerSample = hardwareBitsPerSample / 8 * channelMode;
-constexpr bool samples_left_justified = true; // INMP441 is left-justified in 32-bit word
-
-ESP_STATIC_ASSERT(hardwareBitsPerSample <= bitsPerSample, "Currently only supports hardwareBitsPerSample >= bitsPerSample");
+ESP_STATIC_ASSERT(
+    AudioConfig::hardwareBitsPerSample <= AudioConfig::bitsPerSample,
+    "Currently only supports hardwareBitsPerSample >= bitsPerSample");
 
 Recorder::Recorder(i2s_port_t deviceIndex, int sdInPin, int sckPin, int wsPin)
     : i2s_pin_config({
@@ -29,7 +24,7 @@ void Recorder::begin(uint32_t sampleRate)
   i2s_config_t i2s_config = {.mode =
                                  (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
                              .sample_rate = sampleRate,
-                             .bits_per_sample = bitsPerSample,
+                             .bits_per_sample = AudioConfig::bitsPerSample,
                              // bro this is stupid, PIO framework library for arduino-esp32 is outdated!!!
                              // this is a bug from older i2s driver:
                              // https://github.com/espressif/esp-idf/issues/6625
@@ -54,17 +49,17 @@ void writeSamples(
     size_t fsBufferSize, // MUST be actual capacity of fsBuffer
     File &file)
 {
-  if (bytesPerSample == 0)
+  if (AudioConfig::bytesPerSample == 0)
     return;
 
-  size_t numOfSamples = bytesRead / bytesPerSample;
+  size_t numOfSamples = bytesRead / AudioConfig::bytesPerSample;
   if (numOfSamples == 0)
     return;
 
   for (size_t s = 0; s < numOfSamples; ++s)
   {
     // Ensure enough room, otherwise flush
-    if (bytesWritten + validBytesPerSample > fsBufferSize)
+    if (bytesWritten + AudioConfig::validBytesPerSample > fsBufferSize)
     {
       file.write(fsBuffer, bytesWritten);
       bytesWritten = 0;
@@ -77,7 +72,7 @@ void writeSamples(
     uint32_t u;
     uint8_t b0, b1, b2;
 
-    if (samples_left_justified)
+    if (AudioConfig::isLeftJustified)
     {
       // left-justified: valid 24 bits are in bits [31:8]
       u = (raw >> 8) & 0x00FFFFFFu;
@@ -99,30 +94,25 @@ void writeSamples(
   }
 }
 
-bool Recorder::readToFile(File &file, size_t bufferSize,
-                          unsigned long durationMs, RecordingCallback callback)
+bool Recorder::readFor(unsigned long durationMs, size_t bufferSize, RecordingCallback callback)
 {
-  if (bufferSize % bytesPerSample != 0)
+  if (bufferSize % AudioConfig::bytesPerSample != 0)
   {
     Serial.println("[ERR] Buffer size must be a multiple of bytes per sample");
     return false;
   }
 
   size_t bytesRead = 0;
-  size_t bytesWritten = 0;
-  std::vector<int32_t> samplingBuffer(bufferSize / bytesPerSample);
-  // Fit 341 samples of 3 bytes each
-  uint8_t fsWriteBuffer[1023];
+  std::vector<int32_t> samplingBuffer(bufferSize / AudioConfig::bytesPerSample);
 
   const size_t totalSamples = (static_cast<size_t>(sampleRate) * durationMs) / 1000;
-  const size_t loops = totalSamples * bytesPerSample / bufferSize;
+  const size_t loops = totalSamples * AudioConfig::bytesPerSample / bufferSize;
   const size_t readTargetBytes = loops * bufferSize;
-  const size_t actualTargetBytes = loops * bufferSize * validBytesPerSample / bytesPerSample;
+  const size_t actualTargetBytes = loops * bufferSize * AudioConfig::validBytesPerSample / AudioConfig::bytesPerSample;
 
   Serial.printf("Reading %u bytes (and saving %u bytes) in %u ms (Read loops: %u)\n",
                 readTargetBytes, actualTargetBytes, durationMs, loops);
 
-  writeWavHeader(file, actualTargetBytes);
   for (size_t i = 0; i < loops; i++)
   {
     esp_err_t r = i2s_read(deviceIndex, samplingBuffer.data(), bufferSize, &bytesRead,
@@ -133,21 +123,12 @@ bool Recorder::readToFile(File &file, size_t bufferSize,
       return false;
     }
 
-    writeSamples(bytesRead, samplingBuffer.data(), bytesWritten,
-                 fsWriteBuffer, sizeof(fsWriteBuffer), file);
-
     if (callback)
     {
       callback(samplingBuffer.data());
     }
 
     yield();
-  }
-
-  if (bytesWritten > 0)
-  {
-    file.write(fsWriteBuffer, bytesWritten);
-    bytesWritten = 0;
   }
 
   return true;
@@ -165,18 +146,24 @@ void Recorder::writeWavHeader(File &file, size_t actualTargetBytes)
   *(uint32_t *)(header + 16) = 16;
   *(uint16_t *)(header + 20) = 1;
   // Num channels
-  *(uint16_t *)(header + 22) = channelMode;
+  *(uint16_t *)(header + 22) = AudioConfig::channelMode;
   // Sample rate
   *(uint32_t *)(header + 24) = sampleRate;
   // Byte rate = SampleRate * BlockAlign
-  *(uint32_t *)(header + 28) = sampleRate * validBytesPerSample;
+  *(uint32_t *)(header + 28) = sampleRate * AudioConfig::validBytesPerSample;
   // Block align (bytes per sample frame)
-  *(uint16_t *)(header + 32) = validBytesPerSample;
+  *(uint16_t *)(header + 32) = AudioConfig::validBytesPerSample;
   // Bits per sample (per channel)
-  *(uint16_t *)(header + 34) = hardwareBitsPerSample;
+  *(uint16_t *)(header + 34) = AudioConfig::hardwareBitsPerSample;
 
   memcpy(header + 36, "data", 4);
   *(uint32_t *)(header + 40) = actualTargetBytes;
 
   file.write(header, 44);
+}
+
+const size_t calculateActualSizeFor(const unsigned long durationMs, const uint32_t sampleRate)
+{
+  const size_t totalSamples = (static_cast<size_t>(sampleRate) * durationMs) / 1000;
+  return totalSamples * AudioConfig::validBytesPerSample;
 }
