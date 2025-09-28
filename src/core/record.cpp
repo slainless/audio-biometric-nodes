@@ -9,6 +9,7 @@
 
 #include <Arduino.h>
 #include <vector>
+#include <cstring>
 
 #define WAV_FILE_PATH "/recording.wav"
 #define RECORDER_BUFFER_SIZE 512
@@ -172,7 +173,44 @@ namespace Record
     return RecorderResult{RecorderCode::OK};
   };
 
-  RecorderResult sample(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin) {
+  RecorderResult sample(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin, const char *sampleName)
+  {
+    __assertMqttReady;
+
+    auto res = mqtt.publishFragmentHeader(MqttTopic::RECORDER, MqttHeader::SAMPLE);
+    __returnMqttError(res, RemoteXY.value_sampler_status);
+
+    res = mqtt.publishFragmentBody(MqttTopic::RECORDER, reinterpret_cast<const uint8_t *>(sampleName), std::strlen(sampleName));
+    __returnMqttError(res, RemoteXY.value_sampler_status);
+
+    auto recordingResult = start(recorder, mqtt, blinkingPin);
+    if (recordingResult.code != RecorderCode::OK)
+    {
+      if (recordingResult.code == RecorderCode::MQTT_TRANSMISSION_FAILED && recordingResult.mqttError.has_value())
+      {
+        ESP_LOGE(
+            TAG,
+            "Fail when transmitting with error code: %d, at packet number: %d",
+            recordingResult.mqttError->code,
+            recordingResult.mqttError->packetNumber);
+        sprintf(
+            RemoteXY.value_sampler_status,
+            "MQTT Transmission error: %d - %d",
+            recordingResult.mqttError->code,
+            recordingResult.mqttError->packetNumber);
+        return recordingResult;
+      }
+      else
+      {
+        ESP_LOGE(TAG, "Fail when recording with error code: %d", recordingResult.code);
+        sprintf(RemoteXY.value_sampler_status, "Recording error: %d", recordingResult.code);
+      }
+    }
+
+    res = mqtt.publishFragmentTrailer(MqttTopic::RECORDER);
+    __returnMqttError(res, RemoteXY.value_sampler_status);
+
+    return RecorderResult{RecorderCode::OK};
   };
 
 #undef __returnMqttError

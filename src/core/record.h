@@ -29,5 +29,5 @@ struct RecorderResult
 namespace Record
 {
   RecorderResult verify(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin);
-  RecorderResult sample(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin);
+  RecorderResult sample(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin, const char *sampleName);
 }

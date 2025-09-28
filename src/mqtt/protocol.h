@@ -29,7 +29,8 @@ extern "C"
 
 #define MQTT_HEADER_LIST \
   _MQX(WILL, "ded")      \
-  _MQX(VERIFY, "verify")
+  _MQX(VERIFY, "verify") \
+  _MQX(SAMPLE, "sample")
 
 #define MQTT_MESSAGE_TYPE_LIST  \
   _MQX(MESSAGE, "msg ")         \
@@ -37,8 +38,9 @@ extern "C"
   _MQX(FRAGMENT_BODY, "frag")   \
   _MQX(FRAGMENT_TRAILER, "end ")
 
-#define MQTT_TOPIC_LIST                                       \
-  _MQX(RECORDER, "audio_biometric/slainless/device/recorder") \
+#define MQTT_TOPIC_LIST                                                   \
+  _MQX(RECORDER, "audio_biometric/slainless/device/recorder")             \
+  _MQX(VERIFY_RESULT, "audio_biometric/slainless/device/recorder/verify") \
   _MQX(CONTROLLER, "audio_biometric/slainless/device/controller")
 
 #define MQTT_CONTROLLER_COMMAND_LIST \
