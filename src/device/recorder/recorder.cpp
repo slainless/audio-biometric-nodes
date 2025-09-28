@@ -28,16 +28,19 @@ void subscribeToVerifyResult(Mqtt &mqtt)
         index += 4;
 
         uint8_t referenceSize = msg[index++];
+        referenceSize = min(referenceSize, static_cast<uint8_t>(sizeof(RemoteXY.value_recorder_reference) - 1));
         char reference[referenceSize + 1] = {0};
         memcpy(&reference, &msg[index], referenceSize);
         index += referenceSize;
 
         uint8_t transcriptionSize = msg[index++];
+        transcriptionSize = min(transcriptionSize, static_cast<uint8_t>(sizeof(RemoteXY.value_recorder_transcription) - 1));
         char transcription[transcriptionSize + 1] = {0};
         memcpy(&transcription, &msg[index], transcriptionSize);
         index += transcriptionSize;
 
         uint8_t commandSize = msg[index++];
+        commandSize = min(commandSize, static_cast<uint8_t>(sizeof(RemoteXY.value_recorder_command) - 1));
         char command[commandSize + 1] = {0};
         memcpy(&command, &msg[index], commandSize);
 
