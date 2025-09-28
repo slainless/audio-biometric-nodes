@@ -52,7 +52,7 @@ class Verificator:
                 similarity=float(best_similarity),
                 transcription="",
                 command=None,
-                reference=None,
+                reference=best_reference,
             )
 
         if isinstance(audio, Seekable):  # pyright: ignore[reportGeneralTypeIssues]

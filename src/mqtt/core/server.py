@@ -8,8 +8,11 @@ from paho.mqtt.client import ConnectFlags, DisconnectFlags, MQTTMessage
 from paho.mqtt.properties import Properties
 from paho.mqtt.enums import CallbackAPIVersion
 
+from ...biometric import VerificationResult
 from .message import MessageAssembler
 from .ffi import Protocol
+
+import struct
 
 logger = logging.getLogger(__name__)
 
@@ -180,6 +183,22 @@ class MqttServer:
         payload.extend(command.encode())
 
         self._client.publish(Protocol.MqttTopic.CONTROLLER, payload, retain=True)
+
+    def send_verification_result(self, destination: str, result: VerificationResult):
+        payload = bytearray()
+        payload.extend(Protocol.MqttMessageType.MESSAGE.encode())
+        payload.extend(len(Protocol.MqttIdentifier.SERVER).to_bytes())
+        payload.extend(Protocol.MqttIdentifier.SERVER.encode())
+        payload.append(result.verified)
+        payload.extend(struct.pack("<f", result.similarity))
+        payload.extend(len(result.reference or "-").to_bytes())
+        payload.extend((result.reference or "-").encode())
+        payload.extend(len(result.transcription or "-").to_bytes())
+        payload.extend((result.transcription or "-").encode())
+        payload.extend(len(result.command or "-").to_bytes())
+        payload.extend((result.command or "-").encode())
+
+        self._client.publish(Protocol.MqttTopic.VERIFY_RESULT, payload, retain=True)
 
     def _on_assembled(self, id: str, header: str, data: bytearray):
         """Callback for when a message is assembled."""

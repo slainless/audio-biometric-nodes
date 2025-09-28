@@ -20,7 +20,6 @@ class MessageAssembler:
     def __init__(self):
         self._partials = {}
         self._lock = Lock()
-        self._executor = ThreadPoolExecutor()
 
         def on_assembled(id: str, header: str, data: bytearray):
             pass
@@ -88,4 +87,4 @@ class MessageAssembler:
                     raise ValueError(f"Invalid message type: {type}")
 
     def _assembledCallback(self, id: str, header: str, data: bytearray):
-        self._executor.submit(self.on_assembled, id, header, data)
+        self.on_assembled(id, header, data)

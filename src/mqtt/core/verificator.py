@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from .server import MqttServer
@@ -17,12 +18,14 @@ class VerificationHandler:
         self.threshold = threshold
         self.verificator = verificator
         self.stop_at_unverified = stop_at_unverified
+        self._executor = ThreadPoolExecutor(4)
 
     def __call__(self, server: MqttServer, id: str, data: bytes) -> Any:
         logger.info(f"[{id}] Verifying audio...")
         result = self.verificator.verify(
             data, threshold=self.threshold, stop_at_unverified=self.stop_at_unverified
         )
+        self._executor.submit(server.send_verification_result, "", result)
         logger.info(f"[{id}] Verification result:\n{result}")
 
         if not result.verified:
