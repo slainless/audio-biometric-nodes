@@ -180,7 +180,7 @@ namespace Record
     auto res = mqtt.publishFragmentHeader(MqttTopic::RECORDER, MqttHeader::SAMPLE);
     __returnMqttError(res, RemoteXY.value_sampler_status);
 
-    res = mqtt.publishFragmentBody(MqttTopic::RECORDER, reinterpret_cast<const uint8_t *>(sampleName), std::strlen(sampleName));
+    res = mqtt.publishFragmentBody(MqttTopic::RECORDER, reinterpret_cast<const uint8_t *>(sampleName), std::strlen(sampleName) + 1);
     __returnMqttError(res, RemoteXY.value_sampler_status);
 
     auto recordingResult = start(recorder, mqtt, blinkingPin);
