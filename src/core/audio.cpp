@@ -1,11 +1,16 @@
 #include "core/audio.h"
+
 #include <cstdint>
 #include <driver/i2s.h>
 #include <vector>
 
-ESP_STATIC_ASSERT(
-    AudioConfig::hardwareBitsPerSample <= AudioConfig::bitsPerSample,
-    "Currently only supports hardwareBitsPerSample >= bitsPerSample");
+#include "core/utils.h"
+
+createTag(RECORDER)
+
+    ESP_STATIC_ASSERT(
+        AudioConfig::hardwareBitsPerSample <= AudioConfig::bitsPerSample,
+        "Currently only supports hardwareBitsPerSample >= bitsPerSample");
 
 Recorder::Recorder(i2s_port_t deviceIndex, int sdInPin, int sckPin, int wsPin)
     : i2s_pin_config({
@@ -98,7 +103,7 @@ bool Recorder::readFor(unsigned long durationMs, size_t bufferSize, RecordingCal
 {
   if (bufferSize % AudioConfig::bytesPerSample != 0)
   {
-    Serial.println("[ERR] Buffer size must be a multiple of bytes per sample");
+    ESP_LOGE(TAG, "Buffer size must be a multiple of bytes per sample");
     return false;
   }
 
@@ -110,8 +115,8 @@ bool Recorder::readFor(unsigned long durationMs, size_t bufferSize, RecordingCal
   const size_t readTargetBytes = loops * bufferSize;
   const size_t actualTargetBytes = loops * bufferSize * AudioConfig::validBytesPerSample / AudioConfig::bytesPerSample;
 
-  Serial.printf("Reading %u bytes (and saving %u bytes) in %u ms (Read loops: %u)\n",
-                readTargetBytes, actualTargetBytes, durationMs, loops);
+  ESP_LOGI(TAG, "Reading %u bytes (and saving %u bytes) in %u ms (Read loops: %u)\n",
+           readTargetBytes, actualTargetBytes, durationMs, loops);
 
   for (size_t i = 0; i < loops; i++)
   {
@@ -119,7 +124,7 @@ bool Recorder::readFor(unsigned long durationMs, size_t bufferSize, RecordingCal
                            portMAX_DELAY);
     if (r != ESP_OK)
     {
-      Serial.printf("[ERR] i2s_read failed: %d\n", r);
+      ESP_LOGE(TAG, "i2s_read failed: %d\n", r);
       return false;
     }
 
