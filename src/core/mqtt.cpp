@@ -172,7 +172,7 @@ int Mqtt::subscribe(const char *topic,
   read = mqttClient->read(into, size);                                            \
   if (read != size)                                                               \
   {                                                                               \
-    ESP_LOGD(TAG, "EOF: Expecting message to be of length %d, instead got: %d\n", \
+    ESP_LOGI(TAG, "EOF: Expecting message to be of length %d, instead got: %d\n", \
              size, read);                                                         \
     return;                                                                       \
   }
@@ -180,13 +180,13 @@ int Mqtt::subscribe(const char *topic,
 
         if (messageSize < 6)
         {
-          ESP_LOGD(TAG, "Received MQTT message that is too short");
+          ESP_LOGI(TAG, "Received MQTT message that is too short");
           return;
         }
 
         if (messageSize == 6)
         {
-          ESP_LOGD(TAG, "Receiving empty MQTT message");
+          ESP_LOGI(TAG, "Receiving empty MQTT message");
           cb("", 0);
           return;
         }
@@ -196,7 +196,7 @@ int Mqtt::subscribe(const char *topic,
 
         if (strncmp(messageType, MqttMessageType::MESSAGE, 4) != 0)
         {
-          ESP_LOGD(TAG, "Receiving non-message type MQTT message: %s\n", messageType);
+          ESP_LOGI(TAG, "Receiving non-message type MQTT message: %s\n", messageType);
           return;
         }
 
@@ -208,7 +208,7 @@ int Mqtt::subscribe(const char *topic,
 
         if (strncmp(id, MqttIdentifier::SERVER, idSize) != 0)
         {
-          ESP_LOGD(TAG, "Received MQTT message from source other than server: %s\n", id);
+          ESP_LOGI(TAG, "Received MQTT message from source other than server: %s\n", id);
           return;
         }
 
@@ -216,7 +216,7 @@ int Mqtt::subscribe(const char *topic,
         char payload[payloadSize + 1] = {0};
         __assert_read(reinterpret_cast<uint8_t *>(payload), payloadSize);
 
-        ESP_LOGD(TAG, "Receiving MQTT message of size %d from %s with content:\n%s\n", payloadSize, id, payload);
+        ESP_LOGI(TAG, "Receiving MQTT message of size %d from %s with content:\n%s\n", payloadSize, id, payload);
         cb(payload, payloadSize);
 
 #undef __assert_read
