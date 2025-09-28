@@ -51,6 +51,9 @@ void setup()
 
 auto lastReconnectAttempt = millis();
 auto lastConfig = millis();
+auto lastRecording = millis();
+auto lastSampling = millis();
+
 void loop()
 {
   RemoteXY_Handler();
@@ -63,8 +66,18 @@ void loop()
 
   if (RemoteXY.button_recorder != LOW)
   {
-    controlledTask(taskMutex, lastConfig, 6000, {
+    controlledTask(taskMutex, lastRecording, 6000, {
       Record::verify(recorder, mqtt, BUILTIN_LED_PIN);
+    });
+  }
+
+  if (RemoteXY.button_sampler != LOW)
+  {
+    controlledTask(taskMutex, lastSampling, 6000, {
+      auto sampleName = String(RemoteXY.input_voice_name);
+      sampleName.trim();
+
+      Record::sample(recorder, mqtt, BUILTIN_LED_PIN, sampleName.c_str());
     });
   }
 
