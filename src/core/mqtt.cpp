@@ -75,6 +75,13 @@ void Mqtt::poll(std::function<void()> connectCallback)
   }
 }
 
+bool Mqtt::isConnected()
+{
+  if (!client)
+    return false;
+  return client->connected();
+}
+
 int Mqtt::publishWill(const char *topic, const char *message)
 {
   isClientReady;

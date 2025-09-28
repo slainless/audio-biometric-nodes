@@ -30,6 +30,9 @@ public:
 
   bool connect(MqttConfig &config);
   bool connect(const char *host, uint16_t port, bool secure);
+
+  bool isConnected();
+
   void poll(std::function<void()> connectCallback = nullptr);
 
   int publishWill(const char *topic, const char *message);
