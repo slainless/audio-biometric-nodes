@@ -1,10 +1,9 @@
-#include "core/mqtt.h"
+#include "device/recorder/recorder.h"
+
 #include "core/utils.h"
 #include "core/remotexy.h"
 
 #include "mqtt/protocol.h"
-
-#include "device/recorder/recorder.h"
 
 createTag(VERIFY_RESULT);
 

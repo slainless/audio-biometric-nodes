@@ -1,83 +1,67 @@
-#include <Arduino.h>
-
-#include "core/mqtt.h"
-#include "mqtt/protocol.h"
-#include "setup/wifi.h"
-#include "setup/spiffs.h"
-
-#include "device/controller/controller.h"
-
-#include <SPIFFS.h>
-
 #define LAMP_SWITCH_PIN 15
 #define FAN_SWITCH_PIN 18
 
+#include <Arduino.h>
+#include <esp_log.h>
+
+#include "core/remotexy.h"
+
+#include "core/mqtt.h"
+#include "core/wifi.h"
+#include "mqtt/protocol.h"
+#include "core/filesystem.h"
+#include "core/utils.h"
+#include "core/control.h"
+
+#include "device/controller/controller.h"
+
+WiFiConfig wifiConfig;
+MqttConfig mqttConfig;
+
 Mqtt mqtt(CONTROLLER_IDENTIFIER);
 
-void subscribeMqtt()
-{
-  mqtt.subscribe(
-      MqttTopic::CONTROLLER,
-      [](const char *msg)
-      {
-        if (strcmp(msg, MqttControllerCommand::LAMP_ON) == 0)
-        {
-          digitalWrite(LAMP_SWITCH_PIN, HIGH);
-        }
-        else if (strcmp(msg, MqttControllerCommand::LAMP_OFF) == 0)
-        {
-          digitalWrite(LAMP_SWITCH_PIN, LOW);
-        }
-        else if (strcmp(msg, MqttControllerCommand::FAN_ON) == 0)
-        {
-          digitalWrite(FAN_SWITCH_PIN, HIGH);
-        }
-        else if (strcmp(msg, MqttControllerCommand::FAN_OFF) == 0)
-        {
-          digitalWrite(FAN_SWITCH_PIN, LOW);
-        }
-      });
-}
+static SemaphoreHandle_t taskMutex = nullptr;
+createTag(MAIN);
 
 void setup()
 {
+  esp_log_level_set("*", ESP_LOG_DEBUG);
+
+  RemoteXY_Init();
   Serial.begin(115200);
   pinMode(LAMP_SWITCH_PIN, OUTPUT);
   pinMode(FAN_SWITCH_PIN, OUTPUT);
 
-  setupSPIFFS();
-  setupWiFi();
-  setupMqtt(mqtt);
-  subscribeMqtt();
+  int code;
+  ensureSetup(code, FileSystem::setup(), "SPIFFS");
+  ensureSetup(code, WiFiConfigurer::setup(wifiConfig), "WiFi");
+  ensureSetup(code, MqttConfigurer::setup(mqttConfig, mqtt), "MQTT");
+  subscribeToCommand(mqtt, LAMP_SWITCH_PIN, FAN_SWITCH_PIN);
+
+  RemoteXYConfigurer::updateConfigToRemote(wifiConfig, mqttConfig);
+
+  taskMutex = xSemaphoreCreateMutex();
 }
 
-void reconnectHandler()
-{
-  reconnectMqtt(mqtt);
-  subscribeMqtt();
-}
+auto lastReconnectAttempt = millis();
+auto lastConfig = millis();
 
 void loop()
 {
-  if (!mqtt.client)
+  RemoteXY_Handler();
+  if (RemoteXY.button_store_config != LOW)
   {
-    Serial.println("MQTT client is not initialized, please setup mqtt");
+    controlledTask(taskMutex, lastConfig, 1000, {
+      RemoteXYConfigurer::configureNetwork(wifiConfig, mqttConfig, mqtt);
+    });
   }
 
-  if (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.println("WiFi is not connected, please setup wifi");
-  }
-
-  mqtt.poll(reconnectHandler);
-
-  auto cmd = Serial.readStringUntil('\n');
-  cmd.trim();
-  if (cmd.equalsIgnoreCase("wifi"))
-    return configureWiFi();
-  if (cmd.equalsIgnoreCase("mqtt"))
-  {
-    configureMqtt(mqtt);
-    subscribeMqtt();
-  }
+  mqtt.poll(
+      []
+      {
+        controlledTask(taskMutex, lastReconnectAttempt, 1000, {
+          MqttConfigurer::reconnect(mqttConfig, mqtt);
+          subscribeToCommand(mqtt, LAMP_SWITCH_PIN, FAN_SWITCH_PIN);
+        });
+      });
 }
