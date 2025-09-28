@@ -1,7 +1,7 @@
 # Simple Audio Biometric System with ESP32
 
 Built on top of PlatformIO and Uvicorn. 
-A simple audio biometric system built with ESP32, INMP441, SpeechBrain, and OpenAI Whisper.
+A simple audio biometric system built with ESP32, INMP441, audio embedder, and transcriber.
 
 ## Components
 
@@ -20,15 +20,19 @@ before building the WAV. Even before that, I2S must be setup to accomodate those
 so we are using 32 bits per sample in the configuration. 
 
 Each sample needs to be shifted and then written to the buffer. The recording process is also not
-that straightforward since the system is ran on top of bare ESP32 without PSRAM so it needs to write
-to flash first before sending the audio.
+that straightforward since the system is ran on top of bare ESP32 without PSRAM so ~~it needs to write
+to flash first before sending the audio~~.
 
-The resulting audio is a Mono 16KHz sampled 24-bit WAV.
+The resulting audio is a Mono 8KHz sampled 24-bit WAV.
 
 ### Audio Transmission
 
-Since the audio is stored in flash, the upload process is also done in chunking fashion, 
-reading and sending 512 bytes per transmission.
+~~Since the audio is stored in flash, the upload process is also done in chunking fashion, 
+reading and sending 512 bytes per transmission.~~
+
+The upload process is done while recording so this is probably only feasible in local network,
+or assuming the WiFi interface store the buffer in flash fd. Obviously, chunking is the only way
+to transmit the audio.
 
 Some simple protocol is defined to allow this method of communication. 
 So, the recorder will send chunks and the server will reassemble those chunks and do processing on it.
@@ -37,8 +41,10 @@ The server will obviously discard any partial or non-conforming packets.
 ### Audio Processing
 
 For audio processing:
-- Speechbrain model `speechbrain/spkrec-ecapa-voxceleb` to embed the audio
-- OpenAI's Whisper model `base` to process transcription
+- ~~Speechbrain model `speechbrain/spkrec-ecapa-voxceleb` to embed the audio~~
+- [Speaker-wavLM](https://huggingface.co/Orange/Speaker-wavLM-id) is used as the embedder, 
+  which yield better result compared to Speechbrain's.
+- OpenAI's Whisper to process transcription.
 
 For now, the command matching process is pretty simple and naive, simply using diffing logic.
 Though, it can be evolved into a more sophisticated version, by doing a single pass to LLM using [dspy](https://dspy.ai/),
@@ -71,6 +77,15 @@ PAYLOAD  | REMAINING    | payload
 ```
 
 The remaining constraints can be seen at [protocol.h](./src/mqtt/protocol.h).
+
+### Configuration
+
+Configuration is done via RemoteXY entirely, replacing the old serial configurer:
+https://remotexy.com/en/editor/c53ea055e09450ce32a88346c34c5e33/
+
+Though, the serial prompter code still exist in the codebase and can be reintegrated.
+
+Aside from configuration, basic recording control & sampler is also provided.
 
 ## Sequence Flow
 
@@ -122,10 +137,6 @@ and `controller` for the peripheral microcontroller.
 
 1. Start mosquitto MQTT broker server
 2. Start server with `uvicorn src.server.main:app`
-3. Setup wifi and mqtt for each microcontrollers using `wifi` and `mqtt` command respectively.
-   Connect to serial port then sent those commands after the controller done booting.
-4. For mqtt configuration, use `localhost` or `ip.add.re.ss` of your mosquitto broker. 
-   Then use port `1883` or other if using custom port.
-5. Send `record` command to recorder serial port to start recording.
-6. The server should receive the recording, verifying it, then send command to controller if successful.
-
+3. Setup wifi and mqtt, do verification, or take sample using RemoteXY.
+4. The server should receive the recording, verifying it, then send command to controller if successful.
+5. Swagger docs is also provided via http://localhost:8000/docs.
