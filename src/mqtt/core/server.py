@@ -196,7 +196,7 @@ class MqttServer:
                 return
 
             mv = memoryview(data)
-            sample_name = str(mv[:term].tobytes())
+            sample_name = mv[:term].tobytes().decode()
             actual_data = mv[term + 1 :]
 
             self.on_sample(self, id, sample_name, actual_data)

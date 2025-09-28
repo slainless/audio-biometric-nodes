@@ -6,13 +6,12 @@ from fastapi import FastAPI
 
 from ..biometric import (
     SpeakerWavLMEmbedder,
-    SpeechbrainEmbedder,
     WhisperTranscriber,
     DiffCommandMatcher,
     FileEmbeddingSource,
     Verificator,
 )
-from ..mqtt import MqttServer, Protocol, VerificationHandler
+from ..mqtt import MqttServer, Protocol, VerificationHandler, SampleHandler
 from .api import ApiAttachment
 from .debug import DebugAttachment
 from .lifecycle import BiometricServerLifecycle
@@ -55,6 +54,7 @@ mqtt_server = MqttServer(
     MQTT_BROKER_HOST, MQTT_BROKER_PORT, RECORDER_TOPIC, MQTT_KEEPALIVE
 )
 mqtt_server.on_verify = VerificationHandler(verificator, threshold=0.35)
+mqtt_server.on_sample = SampleHandler(verificator)
 
 api = ApiAttachment(verificator)
 debug = DebugAttachment(mqtt_server)

@@ -16,6 +16,7 @@ class VerificationHandler:
         self.verificator = verificator
 
     def __call__(self, server: MqttServer, id: str, data: bytes) -> Any:
+        _logger.info(f"[{id}] Verifying audio...")
         result = self.verificator.verify(data, threshold=self.threshold)
         _logger.info(f"[{id}] Verification result:\n{result}")
 
@@ -33,3 +34,15 @@ class VerificationHandler:
 
         _logger.info(f"[{id}] Sending command '{result.command}'")
         server.send_command("", result.command)
+
+
+class SampleHandler:
+    def __init__(self, verificator: Verificator):
+        self.verificator = verificator
+
+    def __call__(
+        self, server: MqttServer, id: str, sample_name: str, data: bytes
+    ) -> Any:
+        _logger.info(f"[{id} # {sample_name}] Storing audio sample...")
+        self.verificator.embedder.set_reference(sample_name, data)
+        _logger.info(f"[{id} # {sample_name}] Audio sample stored")
