@@ -57,15 +57,16 @@ namespace Record
     ESP_LOGI(TAG, "Free heap: %d, actual size: %d, buffer size: %d", xPortGetFreeHeapSize(), actualSize, actualBufferSize);
 
     size_t packetNumber = 0;
-    size_t bytesWritten = 0;
-    uint8_t buf[actualBufferSize];
     auto blink = createBlinker(blinkingPin);
     recorder.readFor(
         RECORDER_DURATION,
         RECORDER_BUFFER_SIZE,
-        [blink, actualBufferSize, &mqtt, &buf, &bytesWritten, &mqttResult, &packetNumber, totalPackets](const int32_t *data)
+        [blink, actualBufferSize, &mqtt, &mqttResult, &packetNumber, totalPackets](const int32_t *data)
         {
           blink(0);
+
+          size_t bytesWritten = 0;
+          uint8_t buf[actualBufferSize];
           for (size_t i = 0; i < RECORDER_BUFFER_SIZE / AudioConfig::bytesPerSample; i++)
           {
             auto sample = data[i];
