@@ -65,6 +65,10 @@ void Mqtt::poll(std::function<void()> connectCallback)
         ESP_LOGI(TAG, "MQTT client not connected, calling connect callback");
         connectCallback();
       }
+      else
+      {
+        return;
+      }
     }
 
     client->poll();
@@ -249,6 +253,7 @@ namespace MqttConfigurer
       return code;
     }
 
+    ESP_LOGI(TAG, "Connected");
     return ESP_OK;
   };
 
