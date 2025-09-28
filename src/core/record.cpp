@@ -8,8 +8,6 @@
 #include "mqtt/protocol.h"
 
 #include <Arduino.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/queue.h>
 #include <vector>
 
 #define WAV_FILE_PATH "/recording.wav"

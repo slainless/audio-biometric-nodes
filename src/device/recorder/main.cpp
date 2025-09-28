@@ -30,54 +30,6 @@ Recorder recorder(I2S_NUM_0, RECORDER_SD_PIN, RECORDER_SCK_PIN,
 static SemaphoreHandle_t taskMutex = nullptr;
 createTag(MAIN);
 
-void readinessNotifierHandle(void *pvParameters)
-{
-  while (true)
-  {
-    controlledTaskWhenBusy(taskMutex, {
-      vTaskDelay(pdMS_TO_TICKS(2000));
-      return;
-    });
-
-    if (!mqtt.client)
-    {
-      Serial.println("MQTT client is not initialized, please setup mqtt");
-    }
-
-    if (WiFi.status() != WL_CONNECTED)
-    {
-      Serial.println("WiFi is not connected, please setup wifi");
-    }
-
-    __printHighWaterMark;
-    vTaskDelay(pdMS_TO_TICKS(2000));
-  }
-}
-
-void mqttPollerHandle(void *pvParameters)
-{
-  auto lastReconnectAttempt = millis();
-  auto lastHWCheck = millis();
-  while (true)
-  {
-    mqtt.poll(
-        [&lastReconnectAttempt]
-        {
-          controlledTask(taskMutex, lastReconnectAttempt, 1000, {
-            MqttConfigurer::reconnect(mqttConfig, mqtt);
-          });
-        });
-
-    timedFor(lastHWCheck, 1000, {
-      __printHighWaterMark;
-    });
-
-    vTaskDelay(pdMS_TO_TICKS(100));
-  }
-}
-
-BaseType_t readinessNotifier;
-BaseType_t mqttPoller;
 void setup()
 {
   esp_log_level_set("*", ESP_LOG_DEBUG);
@@ -95,8 +47,6 @@ void setup()
   RemoteXYConfigurer::updateConfigToRemote(wifiConfig, mqttConfig);
 
   taskMutex = xSemaphoreCreateMutex();
-  // readinessNotifier = xTaskCreate(readinessNotifierHandle, "ReadinessNotifier", 2048, nullptr, 1, nullptr);
-  // mqttPoller = xTaskCreate(mqttPollerHandle, "MqttPoller", 2048, nullptr, 1, nullptr);
 }
 
 auto lastReconnectAttempt = millis();
