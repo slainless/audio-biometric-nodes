@@ -11,13 +11,18 @@ logger = logging.getLogger(__name__)
 
 
 class VerificationHandler:
-    def __init__(self, verificator: Verificator, threshold: float = 0.5):
+    def __init__(
+        self, verificator: Verificator, threshold: float = 0.5, stop_at_unverified=True
+    ):
         self.threshold = threshold
         self.verificator = verificator
+        self.stop_at_unverified = stop_at_unverified
 
     def __call__(self, server: MqttServer, id: str, data: bytes) -> Any:
         logger.info(f"[{id}] Verifying audio...")
-        result = self.verificator.verify(data, threshold=self.threshold)
+        result = self.verificator.verify(
+            data, threshold=self.threshold, stop_at_unverified=self.stop_at_unverified
+        )
         logger.info(f"[{id}] Verification result:\n{result}")
 
         if not result.verified:

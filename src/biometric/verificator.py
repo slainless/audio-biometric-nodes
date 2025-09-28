@@ -22,7 +22,9 @@ class Verificator:
         # Inclusive
         threshold: float = 0.50,
         # Whether to stop verification on first successful embedding match
-        stop_at_verified=False,
+        stop_at_first_verified=False,
+        # Whether to stop when unverified, skipping subsequent process
+        stop_at_unverified=True,
     ) -> VerificationResult:
         with open("debug.wav", "wb") as f:
             if isinstance(audio, (bytes, bytearray, memoryview)):
@@ -40,11 +42,11 @@ class Verificator:
                 best_similarity = similarity
                 best_reference = key
 
-            if stop_at_verified and similarity >= threshold:
+            if stop_at_first_verified and similarity >= threshold:
                 break
 
         verified = bool(best_similarity > threshold)
-        if not verified:
+        if not verified and stop_at_unverified:
             return VerificationResult(
                 verified=False,
                 similarity=float(best_similarity),

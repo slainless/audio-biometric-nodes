@@ -53,7 +53,9 @@ verificator = Verificator(command_matcher, embedder, WhisperTranscriber())
 mqtt_server = MqttServer(
     MQTT_BROKER_HOST, MQTT_BROKER_PORT, RECORDER_TOPIC, MQTT_KEEPALIVE
 )
-mqtt_server.on_verify = VerificationHandler(verificator, threshold=0.35)
+mqtt_server.on_verify = VerificationHandler(
+    verificator, threshold=0.35, stop_at_unverified=False
+)
 mqtt_server.on_sample = SampleHandler(verificator)
 
 api = ApiAttachment(verificator)
