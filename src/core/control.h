@@ -30,21 +30,21 @@
 #include <BLEDevice.h>
 
 // RemoteXY connection settings
-#define REMOTEXY_BLUETOOTH_NAME "ESP32-Recorder"
+#define REMOTEXY_BLUETOOTH_NAME "RemoteXY"
 
 #include <RemoteXY.h>
 
 // RemoteXY GUI configuration
 #pragma pack(push, 1)
-uint8_t RemoteXY_CONF[] = // 787 bytes
-    {255, 158, 0, 166, 0, 12, 3, 19, 0, 0, 0, 66, 105, 111, 109, 101, 116, 114, 105, 99,
+uint8_t RemoteXY_CONF[] = // 796 bytes
+    {255, 158, 0, 231, 0, 21, 3, 19, 0, 0, 0, 66, 105, 111, 109, 101, 116, 114, 105, 99,
      0, 31, 1, 106, 200, 3, 1, 0, 0, 17, 0, 130, 7, 19, 91, 56, 27, 16, 1, 27,
      85, 52, 52, 0, 38, 31, 82, 101, 107, 97, 109, 0, 131, 27, 181, 16, 17, 1, 16, 125,
      31, 240, 159, 142, 181, 0, 38, 129, 18, 161, 71, 6, 64, 29, 82, 101, 107, 97, 109, 97,
      110, 32, 98, 101, 114, 100, 117, 114, 97, 115, 105, 32, 53, 32, 100, 101, 116, 105, 107, 0,
      70, 83, 82, 12, 12, 16, 26, 37, 0, 129, 14, 60, 36, 5, 64, 210, 80, 101, 114, 105,
      110, 116, 97, 104, 32, 83, 105, 115, 116, 101, 109, 0, 129, 14, 48, 19, 5, 64, 210, 80,
-     101, 114, 105, 110, 116, 97, 104, 0, 67, 28, 149, 51, 10, 69, 27, 16, 11, 67, 14, 65,
+     101, 114, 105, 110, 116, 97, 104, 0, 67, 22, 151, 60, 6, 101, 27, 16, 11, 67, 14, 65,
      79, 6, 68, 213, 16, 65, 67, 14, 53, 79, 6, 68, 213, 16, 33, 67, 14, 41, 79, 6,
      68, 213, 16, 11, 67, 14, 29, 79, 6, 68, 213, 16, 33, 129, 34, 7, 37, 8, 64, 213,
      86, 101, 114, 105, 102, 105, 107, 97, 116, 111, 114, 0, 129, 14, 36, 25, 5, 64, 210, 75,
@@ -57,26 +57,26 @@ uint8_t RemoteXY_CONF[] = // 787 bytes
      97, 109, 98, 105, 108, 32, 115, 117, 97, 114, 97, 0, 1, 27, 85, 52, 52, 0, 38, 31,
      65, 109, 98, 105, 108, 32, 83, 97, 109, 112, 101, 108, 0, 129, 19, 161, 66, 6, 64, 29,
      83, 97, 109, 112, 101, 108, 32, 98, 101, 114, 100, 117, 114, 97, 115, 105, 32, 53, 32, 100,
-     101, 116, 105, 107, 0, 70, 83, 82, 12, 12, 16, 26, 37, 0, 67, 28, 149, 51, 10, 69,
+     101, 116, 105, 107, 0, 70, 83, 82, 12, 12, 16, 26, 37, 0, 67, 22, 151, 60, 6, 101,
      27, 16, 11, 129, 28, 7, 50, 8, 64, 143, 83, 97, 109, 112, 101, 108, 32, 83, 117, 97,
      114, 97, 0, 131, 27, 181, 16, 17, 1, 16, 125, 31, 240, 159, 142, 181, 0, 38, 131, 45,
      181, 16, 17, 1, 16, 209, 31, 240, 159, 142, 153, 239, 184, 143, 0, 41, 131, 63, 181, 16,
-     17, 1, 16, 97, 31, 226, 154, 153, 239, 184, 143, 0, 26, 19, 0, 129, 17, 7, 72, 8,
+     17, 1, 16, 97, 31, 226, 154, 153, 239, 184, 143, 0, 26, 20, 0, 129, 17, 7, 72, 8,
      64, 100, 80, 101, 110, 103, 97, 116, 117, 114, 97, 110, 32, 75, 111, 110, 101, 107, 115, 105,
-     0, 130, 7, 19, 91, 70, 27, 16, 129, 13, 24, 20, 7, 64, 101, 77, 81, 84, 84, 0,
-     129, 13, 35, 73, 6, 64, 99, 72, 111, 115, 116, 110, 97, 109, 101, 32, 97, 116, 97, 117,
-     32, 73, 80, 32, 65, 100, 100, 114, 101, 115, 115, 58, 0, 7, 13, 42, 80, 10, 36, 64,
-     87, 30, 2, 33, 2, 69, 77, 23, 7, 0, 2, 26, 31, 31, 79, 78, 0, 79, 70, 70,
-     0, 129, 13, 55, 12, 6, 64, 99, 80, 111, 114, 116, 0, 7, 13, 62, 80, 10, 52, 64,
-     87, 30, 2, 129, 13, 79, 36, 6, 64, 99, 71, 117, 110, 97, 107, 97, 110, 32, 83, 83,
-     76, 0, 130, 7, 94, 91, 59, 27, 16, 129, 12, 99, 14, 7, 64, 101, 87, 73, 70, 73,
-     0, 129, 13, 110, 13, 6, 64, 99, 83, 83, 73, 68, 0, 7, 13, 117, 80, 10, 36, 64,
-     87, 30, 2, 33, 129, 13, 130, 27, 6, 64, 99, 80, 97, 115, 115, 119, 111, 114, 100, 0,
-     7, 13, 137, 80, 10, 36, 64, 87, 30, 2, 65, 131, 27, 181, 16, 17, 1, 16, 125, 31,
+     0, 130, 7, 76, 91, 63, 27, 16, 129, 13, 81, 20, 7, 64, 101, 77, 81, 84, 84, 0,
+     129, 13, 92, 61, 5, 64, 99, 72, 111, 115, 116, 110, 97, 109, 101, 32, 97, 116, 97, 117,
+     32, 73, 80, 32, 65, 100, 100, 114, 101, 115, 115, 58, 0, 7, 13, 97, 79, 9, 36, 64,
+     87, 30, 2, 33, 2, 69, 127, 23, 7, 0, 2, 26, 31, 31, 79, 78, 0, 79, 70, 70,
+     0, 129, 13, 108, 10, 5, 64, 99, 80, 111, 114, 116, 0, 7, 13, 113, 79, 9, 52, 64,
+     87, 30, 2, 129, 13, 128, 30, 5, 64, 99, 71, 117, 110, 97, 107, 97, 110, 32, 83, 83,
+     76, 0, 130, 7, 20, 91, 52, 27, 16, 129, 12, 25, 14, 7, 64, 101, 87, 73, 70, 73,
+     0, 129, 13, 36, 11, 5, 64, 99, 83, 83, 73, 68, 0, 7, 13, 41, 80, 9, 36, 64,
+     87, 30, 2, 33, 129, 13, 52, 23, 5, 64, 99, 80, 97, 115, 115, 119, 111, 114, 100, 0,
+     7, 13, 57, 80, 9, 36, 64, 87, 30, 2, 65, 131, 27, 181, 16, 17, 1, 16, 125, 31,
      240, 159, 142, 181, 0, 38, 131, 45, 181, 16, 17, 1, 16, 209, 31, 240, 159, 142, 153, 239,
      184, 143, 0, 41, 131, 63, 181, 16, 17, 1, 16, 97, 31, 226, 154, 153, 239, 184, 143, 0,
-     26, 1, 21, 158, 65, 18, 1, 84, 87, 83, 105, 109, 112, 97, 110, 32, 80, 101, 110, 103,
-     97, 116, 117, 114, 97, 110, 0};
+     26, 1, 21, 156, 65, 18, 1, 84, 87, 83, 105, 109, 112, 97, 110, 32, 80, 101, 110, 103,
+     97, 116, 117, 114, 97, 110, 0, 67, 14, 145, 80, 6, 101, 27, 16, 65};
 
 // this structure defines all the variables and events of your control interface
 struct
@@ -102,6 +102,7 @@ struct
   char value_recorder_verified_status[33];   // string UTF8 end zero
   uint8_t led_sampler;                       // from 0 to 1
   char value_sampler_status[11];             // string UTF8 end zero
+  char value_config_status[65];              // string UTF8 end zero
 
   // other variable
   uint8_t connect_flag; // =1 if wire connected, else =0
@@ -112,3 +113,104 @@ struct
 /////////////////////////////////////////////
 //           END RemoteXY include          //
 /////////////////////////////////////////////
+
+#include "core/wifi.h"
+#include "core/mqtt.h"
+
+enum class RemoteXYConfigCode
+{
+  OK,
+  MISSING_WIFI_SSID,
+  MISSING_WIFI_PASSWORD,
+  MISSING_MQTT_HOST,
+  MISSING_MQTT_PORT,
+  WIFI_FLASH_CONFIG_ERROR,
+  MQTT_FLASH_CONFIG_ERROR,
+  WIFI_ERROR,
+  MQTT_ERROR
+};
+
+RemoteXYConfigCode storeConfig(WiFiConfig &wifiConfig, MqttConfig &mqttConfig)
+{
+  createTag(REMOTEXY);
+
+  if (RemoteXY.input_wifi_ssid[0] == '\0')
+  {
+    return RemoteXYConfigCode::MISSING_WIFI_SSID;
+  }
+
+  if (RemoteXY.input_wifi_password[0] == '\0')
+  {
+    return RemoteXYConfigCode::MISSING_WIFI_PASSWORD;
+  }
+
+  if (RemoteXY.input_mqtt_host[0] == '\0')
+  {
+    return RemoteXYConfigCode::MISSING_MQTT_HOST;
+  }
+
+  if (RemoteXY.input_mqtt_port <= 0)
+  {
+    return RemoteXYConfigCode::MISSING_MQTT_PORT;
+  }
+
+  ESP_LOGI(TAG,
+           "Received configuration:\n"
+           "- WiFi SSID: %s\n"
+           "- WiFi SSID: %s\n"
+           "- MQTT Host: %s\n"
+           "- MQTT Port: %d\n"
+           "- MQTT Use SSL: %d\n",
+           RemoteXY.input_wifi_ssid,
+           RemoteXY.input_wifi_password,
+           RemoteXY.input_mqtt_host,
+           RemoteXY.input_mqtt_port,
+           RemoteXY.input_mqtt_use_ssl);
+
+  sprintf(wifiConfig.ssid, RemoteXY.input_wifi_ssid);
+  sprintf(wifiConfig.password, RemoteXY.input_wifi_password);
+
+  sprintf(mqttConfig.host, RemoteXY.input_mqtt_host);
+  mqttConfig.port = RemoteXY.input_mqtt_port;
+  mqttConfig.useSsl = RemoteXY.input_mqtt_use_ssl;
+
+  auto res = WiFiConfigurer::store(wifiConfig);
+  if (res != ESP_OK)
+  {
+    return RemoteXYConfigCode::WIFI_FLASH_CONFIG_ERROR;
+  }
+
+  res = MqttConfigurer::store(mqttConfig);
+  if (res != ESP_OK)
+  {
+    return RemoteXYConfigCode::MQTT_FLASH_CONFIG_ERROR;
+  }
+
+  return RemoteXYConfigCode::OK;
+}
+
+int updateConfigToRemote(WiFiConfig &wifiConfig, MqttConfig &mqttConfig)
+{
+  if (wifiConfig.ssid[0] != '\0')
+  {
+    sprintf(RemoteXY.input_wifi_ssid, wifiConfig.ssid);
+  }
+  if (wifiConfig.password[0] != '\0')
+  {
+    sprintf(RemoteXY.input_wifi_password, wifiConfig.password);
+  }
+  if (mqttConfig.host[0] != '\0')
+  {
+    sprintf(RemoteXY.input_mqtt_host, mqttConfig.host);
+  }
+  if (mqttConfig.port != 0)
+  {
+    RemoteXY.input_mqtt_port = mqttConfig.port;
+  }
+  if (mqttConfig.useSsl)
+  {
+    RemoteXY.input_mqtt_use_ssl = 1;
+  }
+
+  return 0;
+}
