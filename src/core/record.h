@@ -26,4 +26,8 @@ struct RecorderResult
   std::optional<MqttTransmissionResult> mqttError;
 };
 
-RecorderResult verifyToMqtt(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin);
+namespace Record
+{
+  RecorderResult verify(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin);
+  RecorderResult sample(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin);
+}
