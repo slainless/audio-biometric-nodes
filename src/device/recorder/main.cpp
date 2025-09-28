@@ -14,6 +14,7 @@
 #include "core/wifi.h"
 #include "core/filesystem.h"
 #include "core/utils.h"
+#include "core/remotexy.h"
 #include "core/control.h"
 
 #include "device/recorder/recorder.h"
