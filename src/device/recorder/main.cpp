@@ -53,6 +53,7 @@ auto lastReconnectAttempt = millis();
 auto lastConfig = millis();
 auto lastRecording = millis();
 auto lastSampling = millis();
+auto lastSamplingTry = millis();
 
 void loop()
 {
@@ -73,11 +74,19 @@ void loop()
 
   if (RemoteXY.button_sampler != LOW)
   {
-    controlledTask(taskMutex, lastSampling, 6000, {
+    timedFor(lastSamplingTry, 300, {
       auto sampleName = String(RemoteXY.input_voice_name);
       sampleName.trim();
-
-      Record::sample(recorder, mqtt, BUILTIN_LED_PIN, sampleName.c_str());
+      if (sampleName.charAt(0) != '\0')
+      {
+        controlledTask(taskMutex, lastSampling, 6000, {
+          Record::sample(recorder, mqtt, BUILTIN_LED_PIN, sampleName.c_str());
+        });
+      }
+      else
+      {
+        sprintf(RemoteXY.value_sampler_status, "Empty sample name");
+      }
     });
   }
 
