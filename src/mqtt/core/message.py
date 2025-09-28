@@ -46,7 +46,7 @@ class MessageAssembler:
                         assembled["type_sequence"].clear()
                         assembled["data"].clear()
 
-                    assembled["header"] = str(message)
+                    assembled["header"] = message.decode()
                     assembled["type_sequence"].append(type)
                 case Protocol.MqttMessageType.FRAGMENT_BODY:
                     if len(assembled["type_sequence"]) == 0:
