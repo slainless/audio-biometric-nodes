@@ -47,10 +47,6 @@ namespace Record
     RecorderResult result{RecorderCode::OK};
     __assertMqttReady;
 
-    RemoteXY.led_recorder = HIGH;
-    sprintf(RemoteXY.value_recorder_status, "Recording...");
-    RemoteXY_Handler();
-
     bool finished = false;
     MqttTransmissionResult mqttResult{0, 0};
 
@@ -113,10 +109,6 @@ namespace Record
 
     blink(1);
 
-    RemoteXY.led_recorder = LOW;
-    sprintf(RemoteXY.value_recorder_status, "Recording complete");
-    RemoteXY_Handler();
-
     if (mqttResult.code != ESP_OK)
     {
       result.code = RecorderCode::MQTT_TRANSMISSION_FAILED;
@@ -139,6 +131,10 @@ namespace Record
   RecorderResult verify(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin)
   {
     __assertMqttReady;
+
+    RemoteXY.led_recorder = HIGH;
+    sprintf(RemoteXY.value_recorder_status, "Recording...");
+    RemoteXY_Handler();
 
     auto res = mqtt.publishFragmentHeader(MqttTopic::RECORDER, MqttHeader::VERIFY);
     __returnMqttError(res, RemoteXY.value_recorder_status);
@@ -170,12 +166,20 @@ namespace Record
     res = mqtt.publishFragmentTrailer(MqttTopic::RECORDER);
     __returnMqttError(res, RemoteXY.value_recorder_status);
 
+    RemoteXY.led_recorder = LOW;
+    sprintf(RemoteXY.value_recorder_status, "Recording complete");
+    RemoteXY_Handler();
+
     return RecorderResult{RecorderCode::OK};
   };
 
   RecorderResult sample(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin, const char *sampleName)
   {
     __assertMqttReady;
+
+    RemoteXY.led_sampler = HIGH;
+    sprintf(RemoteXY.value_sampler_status, "Recording...");
+    RemoteXY_Handler();
 
     auto res = mqtt.publishFragmentHeader(MqttTopic::RECORDER, MqttHeader::SAMPLE);
     __returnMqttError(res, RemoteXY.value_sampler_status);
@@ -209,6 +213,10 @@ namespace Record
 
     res = mqtt.publishFragmentTrailer(MqttTopic::RECORDER);
     __returnMqttError(res, RemoteXY.value_sampler_status);
+
+    RemoteXY.led_sampler = LOW;
+    sprintf(RemoteXY.value_sampler_status, "Recording complete");
+    RemoteXY_Handler();
 
     return RecorderResult{RecorderCode::OK};
   };
