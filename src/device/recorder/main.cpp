@@ -43,8 +43,10 @@ void setup()
   ensureSetup(code, FileSystem::setup(), "SPIFFS");
   ensureSetup(code, WiFiConfigurer::setup(wifiConfig), "WiFi");
   ensureSetup(code, MqttConfigurer::setup(mqttConfig, mqtt), "MQTT");
+  subscribeToVerifyResult(mqtt);
 
   RemoteXYConfigurer::updateConfigToRemote(wifiConfig, mqttConfig);
+  RemoteXYConfigurer::resetVerifyResult();
 
   taskMutex = xSemaphoreCreateMutex();
 }
@@ -68,6 +70,7 @@ void loop()
   if (RemoteXY.button_recorder != LOW)
   {
     controlledTask(taskMutex, lastRecording, 6000, {
+      RemoteXYConfigurer::resetVerifyResult();
       Record::verify(recorder, mqtt, BUILTIN_LED_PIN);
     });
   }
@@ -95,6 +98,7 @@ void loop()
       {
         controlledTask(taskMutex, lastReconnectAttempt, 1000, {
           MqttConfigurer::reconnect(mqttConfig, mqtt);
+          subscribeToVerifyResult(mqtt);
         });
       });
 }
