@@ -101,6 +101,8 @@ namespace RemoteXYConfigurer
   {
     createTag(REMOTEXY);
 
+    sprintf(RemoteXY.value_config_status, "Configuring...");
+
     ESP_LOGI(TAG, "Storing configuration");
     auto res = storeConfig(wifiConfig, mqttConfig);
     if (res == RemoteXYConfigCode::MISSING_WIFI_SSID)
