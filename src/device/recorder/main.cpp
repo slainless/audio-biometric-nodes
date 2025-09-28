@@ -90,7 +90,7 @@ void setup()
   ensureSetup(code, WiFiConfigurer::setup(wifiConfig), "WiFi");
   ensureSetup(code, MqttConfigurer::setup(mqttConfig, mqtt), "MQTT");
 
-  updateConfigToRemote(wifiConfig, mqttConfig);
+  RemoteXYConfigurer::updateConfigToRemote(wifiConfig, mqttConfig);
 
   taskMutex = xSemaphoreCreateMutex();
   // readinessNotifier = xTaskCreate(readinessNotifierHandle, "ReadinessNotifier", 2048, nullptr, 1, nullptr);
@@ -104,50 +104,7 @@ void loop()
   if (RemoteXY.button_store_config != LOW)
   {
     controlledTask(taskMutex, lastConfig, 200, {
-      ESP_LOGI(TAG, "Storing configuration");
-      auto res = storeConfig(wifiConfig, mqttConfig);
-      if (res == RemoteXYConfigCode::MISSING_WIFI_SSID)
-      {
-        sprintf(RemoteXY.value_config_status, "Missing WiFi SSID");
-      }
-      else if (res == RemoteXYConfigCode::MISSING_WIFI_PASSWORD)
-      {
-        sprintf(RemoteXY.value_config_status, "Missing WiFi Password");
-      }
-      else if (res == RemoteXYConfigCode::MISSING_MQTT_HOST)
-      {
-        sprintf(RemoteXY.value_config_status, "Missing MQTT Host");
-      }
-      else if (res == RemoteXYConfigCode::MISSING_MQTT_PORT)
-      {
-        sprintf(RemoteXY.value_config_status, "Missing MQTT Port");
-      }
-
-      if (res != RemoteXYConfigCode::OK)
-      {
-        ESP_LOGI(TAG, "Fail to store configuration, caused by: %d", res);
-        controlledReturn;
-      }
-
-      ESP_LOGI(TAG, "Configuration stored.");
-      auto wifiError = WiFiConfigurer::reconnect(wifiConfig);
-      if (wifiError != ESP_OK)
-      {
-        ESP_LOGI(TAG, "Fail to store configure WiFi, caused by: %d", wifiError);
-        sprintf(RemoteXY.value_config_status, "WiFi Error. Check SSID/Password");
-        controlledReturn;
-      }
-
-      auto mqttError = MqttConfigurer::reconnect(mqttConfig, mqtt);
-      if (mqttError != ESP_OK)
-      {
-        ESP_LOGI(TAG, "Fail to store configure MQTT, caused by: %d", mqttError);
-        sprintf(RemoteXY.value_config_status, "MQTT Error. Check Host/Port");
-        controlledReturn;
-      }
-
-      sprintf(RemoteXY.value_config_status, "Connected");
-      ESP_LOGI(TAG, "WiFi and MQTT successfully configured");
+      RemoteXYConfigurer::configureNetwork(wifiConfig, mqttConfig, mqtt);
     });
   }
 }
