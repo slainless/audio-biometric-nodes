@@ -3,7 +3,7 @@
 #include "core/led.h"
 #include "core/buffer.h"
 #include "core/utils.h"
-#include "core/remotexy_struct.h"
+#include "core/remotexy.h"
 
 #include "mqtt/protocol.h"
 
@@ -48,6 +48,10 @@ namespace Record
     RecorderResult result{RecorderCode::OK};
     __assertMqttReady;
 
+    RemoteXY.led_recorder = HIGH;
+    sprintf(RemoteXY.value_recorder_status, "Recording...");
+    RemoteXY_Handler();
+
     bool finished = false;
     MqttTransmissionResult mqttResult{0, 0};
 
@@ -64,6 +68,7 @@ namespace Record
         [blink, actualBufferSize, &mqtt, &mqttResult, &packetNumber, totalPackets](const int32_t *data)
         {
           blink(0);
+          RemoteXY_Handler();
 
           size_t bytesWritten = 0;
           uint8_t buf[actualBufferSize];
@@ -98,6 +103,10 @@ namespace Record
 
     blink(1);
 
+    RemoteXY.led_recorder = LOW;
+    sprintf(RemoteXY.value_recorder_status, "Recording complete");
+    RemoteXY_Handler();
+
     if (mqttResult.code != 0)
     {
       result.code = RecorderCode::MQTT_TRANSMISSION_FAILED;
@@ -120,9 +129,6 @@ namespace Record
   RecorderResult verify(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin)
   {
     __assertMqttReady;
-
-    RemoteXY.led_recorder = HIGH;
-    sprintf(RemoteXY.value_recorder_status, "Recording...");
 
     auto res = mqtt.publishFragmentHeader(MqttTopic::RECORDER, MqttHeader::VERIFY);
     __returnMqttError(res, RemoteXY.value_recorder_status);
@@ -154,8 +160,6 @@ namespace Record
     res = mqtt.publishFragmentTrailer(MqttTopic::RECORDER);
     __returnMqttError(res, RemoteXY.value_recorder_status);
 
-    RemoteXY.led_recorder = LOW;
-    sprintf(RemoteXY.value_recorder_status, "Recording complete");
     return RecorderResult{RecorderCode::OK};
   };
 

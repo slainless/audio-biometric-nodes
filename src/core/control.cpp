@@ -1,5 +1,5 @@
 #include "core/control.h"
-#include "core/remotexy_struct.h"
+#include "core/remotexy.h"
 #include "core/utils.h"
 
 namespace RemoteXYConfigurer
@@ -102,6 +102,7 @@ namespace RemoteXYConfigurer
     createTag(REMOTEXY);
 
     sprintf(RemoteXY.value_config_status, "Configuring...");
+    RemoteXY_Handler();
 
     ESP_LOGI(TAG, "Storing configuration");
     auto res = storeConfig(wifiConfig, mqttConfig);
