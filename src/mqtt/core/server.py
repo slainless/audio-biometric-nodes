@@ -39,7 +39,7 @@ class MqttServer:
         self._client.on_subscribe = self._on_subscribe
         self._client.on_message = self._on_message
 
-        self._message_assembler.on_assembled = self._on_verify
+        self._message_assembler.on_assembled = self._on_assembled
 
         def default_on_verify(server: "MqttServer", id: str, data: bytes):
             pass
@@ -174,7 +174,7 @@ class MqttServer:
 
         self._client.publish(Protocol.MqttTopic.CONTROLLER, payload, retain=True)
 
-    def _on_verify(self, id: str, data: bytes):
+    def _on_assembled(self, id: str, header: str, data: bytearray):
         """Callback for when a message is assembled."""
         logger.info(f"Message assembled, size: {len(data)}. Calling callback...")
         self.on_verify(self, id, data)

@@ -1,23 +1,28 @@
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
+from pydantic import BaseModel
 import logging
 
 from .ffi import Protocol
 
 logger = logging.getLogger(__name__)
 
-type Partial = tuple[list[str], bytearray]
+
+class AssembledMessage(BaseModel):
+    data: bytearray
+    type_sequence: list[str]
+    header: str
 
 
 class MessageAssembler:
-    _partials: dict[str, Partial] = {}
+    _partials: dict[str, AssembledMessage] = {}
 
     def __init__(self):
         self._partials = {}
         self._lock = Lock()
         self._executor = ThreadPoolExecutor()
 
-        def on_assembled(id: str, data: bytes):
+        def on_assembled(id: str, header: str, data: bytearray):
             pass
 
         self.on_assembled = on_assembled
@@ -28,50 +33,59 @@ class MessageAssembler:
             return
 
         with self._lock:
-            types, buffer = self._partials.setdefault(id, ([], bytearray()))
+            assembled = self._partials.setdefault(
+                id, AssembledMessage(data=bytearray(), type_sequence=[], header="")
+            )
 
             match type:
                 case Protocol.MqttMessageType.FRAGMENT_HEADER:
-                    if len(types) > 0:
+                    if len(assembled.type_sequence) > 0:
                         logger.warning(
                             f"Attempting to add fragment header to non-empty partial for id: {id}. Discarding previous partial."
                         )
-                        types.clear()
-                        buffer.clear()
+                        assembled.type_sequence.clear()
+                        assembled.data.clear()
 
-                    types.append(type)
+                    assembled.header = str(message)
+                    assembled.type_sequence.append(type)
                 case Protocol.MqttMessageType.FRAGMENT_BODY:
-                    if len(types) == 0:
+                    if len(assembled.type_sequence) == 0:
                         logger.warning(
                             f"Attempting to add fragment body to empty partial for id: {id}. Discarding message."
                         )
                         return
 
-                    types.append(type)
-                    buffer.extend(message)
+                    assembled.type_sequence.append(type)
+                    assembled.data.extend(message)
                 case Protocol.MqttMessageType.FRAGMENT_TRAILER:
-                    if len(types) == 0:
+                    if len(assembled.type_sequence) == 0:
                         logger.warning(
                             f"Attempting to add fragment trailer to empty partial for id: {id}. Discarding message."
                         )
                         return
 
-                    if types[-1] != Protocol.MqttMessageType.FRAGMENT_BODY:
+                    if (
+                        assembled.type_sequence[-1]
+                        != Protocol.MqttMessageType.FRAGMENT_BODY
+                    ):
                         logger.warning(
                             f"Attempting to add fragment trailer to partial for id: {id} that does not contain a fragment body. Discarding message."
                         )
                         return
 
-                    types.append(type)
-                    buffer.extend(message)
-                    data = bytes(buffer)
+                    assembled.type_sequence.append(type)
+                    assembled.data.extend(message)
 
-                    types.clear()
-                    buffer.clear()
+                    data = bytearray(assembled.data)
+                    header = assembled.header
 
-                    self._assembledCallback(id, data)
+                    assembled.type_sequence.clear()
+                    assembled.data.clear()
+                    assembled.header = ""
+
+                    self._assembledCallback(id, header, data)
                 case _:
                     raise ValueError(f"Invalid message type: {type}")
 
-    def _assembledCallback(self, id: str, data: bytes):
-        self._executor.submit(self.on_assembled, id, data)
+    def _assembledCallback(self, id: str, header: str, data: bytearray):
+        self._executor.submit(self.on_assembled, id, header, data)
