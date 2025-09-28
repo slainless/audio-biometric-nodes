@@ -53,6 +53,7 @@ private:
 
 namespace MqttConfigurer
 {
+  int store(MqttConfig &mqttConfig);
   int setup(MqttConfig &mqttConfig, Mqtt &mqtt);
   int serialPrompt(MqttConfig &mqttConfig, Mqtt &mqtt);
   int reconnect(MqttConfig &mqttConfig, Mqtt &mqtt);

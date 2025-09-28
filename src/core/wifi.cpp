@@ -12,7 +12,7 @@
 
 static const char *TAG = "WIFI";
 
-void connectWiFi(String ssid, String password)
+int connectWiFi(String ssid, String password)
 {
   WiFi.disconnect(true);
   WiFi.begin(ssid, password);
@@ -33,21 +33,38 @@ void connectWiFi(String ssid, String password)
       Serial.println();
       ESP_LOGI(TAG, "Cannot connect to WiFi. Check the inputted password.");
       WiFi.disconnect(true);
-      return;
+      return 1;
     }
   }
 
   Serial.println();
   ESP_LOGI(TAG, "Connected with IP: %s", WiFi.localIP());
+  return ESP_OK;
 };
 
-void connectWiFi(WiFiConfig config)
+int connectWiFi(WiFiConfig config)
 {
-  connectWiFi(String(config.ssid), String(config.password));
+  return connectWiFi(String(config.ssid), String(config.password));
 };
 
 namespace WiFiConfigurer
 {
+  int store(WiFiConfig &config)
+  {
+    ESP_LOGI(TAG, "Saving WiFi configuration to flash");
+    if (FileSystem::store(WIFI_CONFIG_PATH, reinterpret_cast<unsigned char *>(&config),
+                          sizeof(WiFiConfig)))
+    {
+      ESP_LOGI(TAG, "WiFi configuration saved");
+      return 0;
+    }
+    else
+    {
+      ESP_LOGE(TAG, "Failed to save WiFi configuration to flash");
+      return 1;
+    }
+  }
+
   int setup(WiFiConfig &config)
   {
     ESP_LOGI(TAG, "Loading WiFi configuration from flash");
@@ -79,19 +96,18 @@ namespace WiFiConfigurer
     strncpy(config.ssid, ssid.c_str(), sizeof(config.ssid) - 1);
     strncpy(config.password, password.c_str(), sizeof(config.password) - 1);
 
-    ESP_LOGI(TAG, "Saving WiFi configuration to flash");
-    if (FileSystem::store(WIFI_CONFIG_PATH, reinterpret_cast<unsigned char *>(&config),
-                          sizeof(WiFiConfig)))
+    auto res = store(config);
+    if (res != ESP_OK)
     {
-      ESP_LOGI(TAG, "WiFi configuration saved");
-    }
-    else
-    {
-      ESP_LOGE(TAG, "Failed to save WiFi configuration to flash");
-      return 1;
+      return res;
     }
 
     connectWiFi(config);
     return ESP_OK;
+  }
+
+  int reconnect(WiFiConfig &config)
+  {
+    return connectWiFi(config);
   }
 }

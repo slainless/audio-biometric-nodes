@@ -11,4 +11,5 @@ namespace WiFiConfigurer
   int store(WiFiConfig &config);
   int setup(WiFiConfig &config);
   int serialPrompt(WiFiConfig &config);
+  int reconnect(WiFiConfig &config);
 }

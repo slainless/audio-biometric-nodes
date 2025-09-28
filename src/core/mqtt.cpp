@@ -216,6 +216,22 @@ int Mqtt::subscribe(const char *topic,
 
 namespace MqttConfigurer
 {
+  int store(MqttConfig &config)
+  {
+    ESP_LOGI(TAG, "Saving Mqtt configuration to flash");
+    if (FileSystem::store(MQTT_CONFIG_PATH, reinterpret_cast<unsigned char *>(&config),
+                          sizeof(config)))
+    {
+      ESP_LOGI(TAG, "Mqtt configuration saved");
+      return 0;
+    }
+    else
+    {
+      ESP_LOGE(TAG, "Failed to save Mqtt configuration to flash");
+      return 1;
+    }
+  }
+
   int reconnect(MqttConfig &config, Mqtt &mqtt)
   {
     if (config.host[0] == '\0')
@@ -271,15 +287,10 @@ namespace MqttConfigurer
     config.port = port.toInt();
     config.useSsl = useSsl.equalsIgnoreCase("y");
 
-    ESP_LOGI(TAG, "Saving Mqtt configuration to flash");
-    if (FileSystem::store(MQTT_CONFIG_PATH, reinterpret_cast<unsigned char *>(&config),
-                          sizeof(config)))
+    auto res = store(config);
+    if (res != ESP_OK)
     {
-      ESP_LOGI(TAG, "Mqtt configuration saved");
-    }
-    else
-    {
-      ESP_LOGE(TAG, "Failed to save Mqtt configuration to flash");
+      return res;
     }
 
     reconnect(config, mqtt);
