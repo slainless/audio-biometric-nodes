@@ -1,6 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
-from pydantic import BaseModel
+from typing import TypedDict
 import logging
 
 from .ffi import Protocol
@@ -8,7 +8,7 @@ from .ffi import Protocol
 logger = logging.getLogger(__name__)
 
 
-class AssembledMessage(BaseModel):
+class AssembledMessage(TypedDict):
     data: bytearray
     type_sequence: list[str]
     header: str
@@ -39,33 +39,33 @@ class MessageAssembler:
 
             match type:
                 case Protocol.MqttMessageType.FRAGMENT_HEADER:
-                    if len(assembled.type_sequence) > 0:
+                    if len(assembled["type_sequence"]) > 0:
                         logger.warning(
                             f"Attempting to add fragment header to non-empty partial for id: {id}. Discarding previous partial."
                         )
-                        assembled.type_sequence.clear()
-                        assembled.data.clear()
+                        assembled["type_sequence"].clear()
+                        assembled["data"].clear()
 
-                    assembled.header = str(message)
-                    assembled.type_sequence.append(type)
+                    assembled["header"] = str(message)
+                    assembled["type_sequence"].append(type)
                 case Protocol.MqttMessageType.FRAGMENT_BODY:
-                    if len(assembled.type_sequence) == 0:
+                    if len(assembled["type_sequence"]) == 0:
                         logger.warning(
                             f"Attempting to add fragment body to empty partial for id: {id}. Discarding message."
                         )
                         return
 
-                    assembled.type_sequence.append(type)
-                    assembled.data.extend(message)
+                    assembled["type_sequence"].append(type)
+                    assembled["data"].extend(message)
                 case Protocol.MqttMessageType.FRAGMENT_TRAILER:
-                    if len(assembled.type_sequence) == 0:
+                    if len(assembled["type_sequence"]) == 0:
                         logger.warning(
                             f"Attempting to add fragment trailer to empty partial for id: {id}. Discarding message."
                         )
                         return
 
                     if (
-                        assembled.type_sequence[-1]
+                        assembled["type_sequence"][-1]
                         != Protocol.MqttMessageType.FRAGMENT_BODY
                     ):
                         logger.warning(
@@ -73,15 +73,15 @@ class MessageAssembler:
                         )
                         return
 
-                    assembled.type_sequence.append(type)
-                    assembled.data.extend(message)
+                    assembled["type_sequence"].append(type)
+                    assembled["data"].extend(message)
 
-                    data = bytearray(assembled.data)
-                    header = assembled.header
+                    data = bytearray(assembled["data"])
+                    header = assembled["header"]
 
-                    assembled.type_sequence.clear()
-                    assembled.data.clear()
-                    assembled.header = ""
+                    assembled["type_sequence"].clear()
+                    assembled["data"].clear()
+                    assembled["header"] = ""
 
                     self._assembledCallback(id, header, data)
                 case _:
