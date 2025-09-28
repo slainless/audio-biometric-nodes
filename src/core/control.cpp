@@ -149,4 +149,13 @@ namespace RemoteXYConfigurer
     sprintf(RemoteXY.value_config_status, "Connected");
     ESP_LOGI(TAG, "WiFi and MQTT successfully configured");
   }
+
+  void resetVerifyResult()
+  {
+    sprintf(RemoteXY.value_recorder_command, "-");
+    sprintf(RemoteXY.value_recorder_reference, "-");
+    sprintf(RemoteXY.value_recorder_similarity_status, "-");
+    sprintf(RemoteXY.value_recorder_transcription, "-");
+    sprintf(RemoteXY.value_recorder_verified_status, "-");
+  }
 }

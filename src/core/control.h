@@ -19,4 +19,5 @@ namespace RemoteXYConfigurer
   RemoteXYConfigCode storeConfig(WiFiConfig &wifiConfig, MqttConfig &mqttConfig);
   int updateConfigToRemote(WiFiConfig &wifiConfig, MqttConfig &mqttConfig);
   void configureNetwork(WiFiConfig &wifiConfig, MqttConfig &mqttConfig, Mqtt &mqtt);
+  void resetVerifyResult();
 }
