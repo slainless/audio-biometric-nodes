@@ -185,6 +185,7 @@ class MqttServer:
         """Callback for when a message is assembled."""
         logger.info(f"Message assembled, size: {len(data)}, with header: {header}.")
         if header == Protocol.MqttHeader.VERIFY:
+            logger.info("Sending message to on_verify callback")
             self.on_verify(self, id, data)
 
         elif header == Protocol.MqttHeader.SAMPLE:
@@ -199,4 +200,5 @@ class MqttServer:
             sample_name = mv[:term].tobytes().decode()
             actual_data = mv[term + 1 :]
 
+            logger.info("Sending message to on_sample callback")
             self.on_sample(self, id, sample_name, actual_data)

@@ -27,7 +27,7 @@ MQTT_KEEPALIVE = int(os.getenv("MQTT_KEEPALIVE") or 60)
 
 RECORDER_TOPIC = Protocol.MqttTopic.RECORDER
 
-_logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 logging.basicConfig(level=logging.DEBUG)
 
