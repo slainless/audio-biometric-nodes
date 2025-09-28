@@ -139,10 +139,8 @@ bool Recorder::readFor(unsigned long durationMs, size_t bufferSize, RecordingCal
   return true;
 }
 
-void Recorder::writeWavHeader(File &file, size_t actualTargetBytes)
+void Recorder::writeWavHeader(uint8_t *header, size_t actualTargetBytes)
 {
-  uint8_t header[44];
-
   memcpy(header, "RIFF", 4);
   *(uint32_t *)(header + 4) = actualTargetBytes + 36;
   memcpy(header + 8, "WAVE", 4);
@@ -163,8 +161,6 @@ void Recorder::writeWavHeader(File &file, size_t actualTargetBytes)
 
   memcpy(header + 36, "data", 4);
   *(uint32_t *)(header + 40) = actualTargetBytes;
-
-  file.write(header, 44);
 }
 
 const size_t calculateActualSizeFor(const unsigned long durationMs, const uint32_t sampleRate)

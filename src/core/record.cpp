@@ -58,6 +58,17 @@ namespace Record
     size_t totalPackets = actualSize / actualBufferSize;
     ESP_LOGI(TAG, "Free heap: %d, actual size: %d, buffer size: %d", xPortGetFreeHeapSize(), actualSize, actualBufferSize);
 
+    uint8_t header[44];
+    recorder.writeWavHeader(header, actualSize);
+    auto res = mqtt.publishFragmentBody(MqttTopic::RECORDER, header, 44);
+    if (res != ESP_OK)
+    {
+      mqttResult.code = res;
+      mqttResult.packetNumber = 0;
+      result.code = RecorderCode::MQTT_TRANSMISSION_FAILED;
+      result.mqttError.emplace(mqttResult);
+    }
+
     size_t packetNumber = 0;
     auto blink = createBlinker(blinkingPin);
     recorder.readFor(
@@ -105,7 +116,7 @@ namespace Record
     sprintf(RemoteXY.value_recorder_status, "Recording complete");
     RemoteXY_Handler();
 
-    if (mqttResult.code != 0)
+    if (mqttResult.code != ESP_OK)
     {
       result.code = RecorderCode::MQTT_TRANSMISSION_FAILED;
       result.mqttError.emplace(mqttResult);

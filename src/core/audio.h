@@ -24,12 +24,12 @@ public:
   void end();
   bool readFor(unsigned long durationMs, size_t bufferSize, RecordingCallback callback = nullptr);
 
+  void writeWavHeader(uint8_t *buf, uint32_t totalSamples);
+
 private:
   i2s_port_t deviceIndex;
   uint32_t sampleRate;
   i2s_pin_config_t i2s_pin_config;
-
-  void writeWavHeader(File &file, uint32_t totalSamples);
 };
 
 const size_t calculateActualSizeFor(const unsigned long durationMs, const uint32_t sampleRate);
