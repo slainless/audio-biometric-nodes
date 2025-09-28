@@ -163,7 +163,7 @@ class MqttServer:
                 return
 
             logger.info(f"Fragment header received: {metadata}")
-            self._message_assembler.add_message(id, type, bytes())
+            self._message_assembler.add_message(id, type, header.encode())
             return
 
         logger.info(f"Fragmented message received: {metadata}")
