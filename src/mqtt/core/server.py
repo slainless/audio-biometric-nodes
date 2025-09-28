@@ -14,6 +14,7 @@ from .ffi import Protocol
 logger = logging.getLogger(__name__)
 
 type OnVerifyCallback = Callable[["MqttServer", str, bytes], None]
+type OnSampleCallback = Callable[["MqttServer", str, str, bytes], None]
 
 
 class MqttServer:
@@ -44,7 +45,13 @@ class MqttServer:
         def default_on_verify(server: "MqttServer", id: str, data: bytes):
             pass
 
+        def default_on_sample(
+            server: "MqttServer", id: str, sample_name: str, data: bytes
+        ):
+            pass
+
         self.on_verify: OnVerifyCallback = default_on_verify
+        self.on_sample: OnSampleCallback = default_on_sample
 
     def start_forever(self):
         self._client.connect(self._broker_host, self._broker_port, self._keepalive)
@@ -176,5 +183,20 @@ class MqttServer:
 
     def _on_assembled(self, id: str, header: str, data: bytearray):
         """Callback for when a message is assembled."""
-        logger.info(f"Message assembled, size: {len(data)}. Calling callback...")
-        self.on_verify(self, id, data)
+        logger.info(f"Message assembled, size: {len(data)}, with header: {header}.")
+        if header == Protocol.MqttHeader.VERIFY:
+            self.on_verify(self, id, data)
+
+        elif header == Protocol.MqttHeader.SAMPLE:
+            term = next((i for i, b in enumerate(data) if b == 0x00), None)
+            if term is None or term > 20:
+                logger.error(
+                    f"Sample data doesn't contain sample name. Null terminator index: {term}"
+                )
+                return
+
+            mv = memoryview(data)
+            sample_name = str(mv[:term].tobytes())
+            actual_data = mv[term + 1 :]
+
+            self.on_sample(self, id, sample_name, actual_data)
