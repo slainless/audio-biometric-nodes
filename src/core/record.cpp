@@ -66,15 +66,20 @@ namespace Record
       result.mqttError.emplace(mqttResult);
     }
 
+    RemoteXY_Handler();
+
+    auto lastHandle = millis();
     size_t packetNumber = 0;
     auto blink = createBlinker(blinkingPin);
     recorder.readFor(
         RECORDER_DURATION,
         RECORDER_BUFFER_SIZE,
-        [blink, actualBufferSize, &mqtt, &mqttResult, &packetNumber, totalPackets](const int32_t *data)
+        [blink, actualBufferSize, &mqtt, &mqttResult, &packetNumber, totalPackets, &lastHandle](const int32_t *data)
         {
           blink(0);
-          RemoteXY_Handler();
+          timedFor(lastHandle, 1000, {
+            RemoteXY_Handler();
+          });
 
           size_t bytesWritten = 0;
           uint8_t buf[actualBufferSize];
