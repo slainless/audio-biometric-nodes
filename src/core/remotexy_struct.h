@@ -6,7 +6,6 @@
 // this structure defines all the variables and events of your control interface
 struct RemoteXY_t
 {
-
   // input variables
   uint8_t button_recorder;      // =1 if button pressed, else =0, from 0 to 1
   char input_voice_name[21];    // string UTF8 end zero
@@ -20,13 +19,13 @@ struct RemoteXY_t
 
   // output variables
   uint8_t led_recorder;                      // from 0 to 1
-  char value_recorder_status[11];            // string UTF8 end zero
+  char value_recorder_status[65];            // string UTF8 end zero
   char value_recorder_command[65];           // string UTF8 end zero
   char value_recorder_transcription[33];     // string UTF8 end zero
   char value_recorder_similarity_status[11]; // string UTF8 end zero
   char value_recorder_verified_status[33];   // string UTF8 end zero
   uint8_t led_sampler;                       // from 0 to 1
-  char value_sampler_status[11];             // string UTF8 end zero
+  char value_sampler_status[65];             // string UTF8 end zero
   char value_config_status[65];              // string UTF8 end zero
 
   // other variable
