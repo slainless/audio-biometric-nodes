@@ -38,7 +38,7 @@ int connectWiFi(String ssid, String password)
   }
 
   Serial.println();
-  ESP_LOGI(TAG, "Connected with IP: %s", WiFi.localIP());
+  ESP_LOGI(TAG, "Connected with IP: %s", WiFi.localIP().toString());
   return ESP_OK;
 };
 

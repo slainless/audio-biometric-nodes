@@ -167,10 +167,18 @@ RemoteXYConfigCode storeConfig(WiFiConfig &wifiConfig, MqttConfig &mqttConfig)
            RemoteXY.input_mqtt_port,
            RemoteXY.input_mqtt_use_ssl);
 
-  sprintf(wifiConfig.ssid, RemoteXY.input_wifi_ssid);
-  sprintf(wifiConfig.password, RemoteXY.input_wifi_password);
+  auto ssid = String(RemoteXY.input_wifi_ssid);
+  auto password = String(RemoteXY.input_wifi_password);
+  auto host = String(RemoteXY.input_mqtt_host);
 
-  sprintf(mqttConfig.host, RemoteXY.input_mqtt_host);
+  ssid.trim();
+  password.trim();
+  host.trim();
+
+  sprintf(wifiConfig.ssid, ssid.c_str());
+  sprintf(wifiConfig.password, password.c_str());
+
+  sprintf(mqttConfig.host, host.c_str());
   mqttConfig.port = RemoteXY.input_mqtt_port;
   mqttConfig.useSsl = RemoteXY.input_mqtt_use_ssl;
 
