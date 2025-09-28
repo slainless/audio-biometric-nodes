@@ -42,7 +42,7 @@ public:
   int publishFragmentTrailer(const char *topic);
 
   int subscribe(const char *topic,
-                std::function<void(const char *message)> cb);
+                std::function<void(const char *message, size_t size)> cb);
 
 private:
   const char *identifier;
