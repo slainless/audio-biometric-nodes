@@ -173,6 +173,7 @@ class MqttServer:
         self._message_assembler.add_message(id, type, data)
 
     def send_command(self, destination: str, command: str):
+        logger.info(f"Sending command to controller: {command}")
         if command not in Protocol.MqttControllerCommand.Values:
             raise ValueError(f"Invalid command: {command}")
 
@@ -185,6 +186,8 @@ class MqttServer:
         self._client.publish(Protocol.MqttTopic.CONTROLLER, payload, retain=True)
 
     def send_verification_result(self, destination: str, result: VerificationResult):
+        logger.info("Sending verification result to controller")
+
         payload = bytearray()
         payload.extend(Protocol.MqttMessageType.MESSAGE.encode())
         payload.extend(len(Protocol.MqttIdentifier.SERVER).to_bytes())
