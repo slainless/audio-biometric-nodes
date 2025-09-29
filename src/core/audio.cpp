@@ -6,11 +6,11 @@
 
 #include "core/utils.h"
 
-createTag(RECORDER)
+createTag(RECORDER);
 
-    ESP_STATIC_ASSERT(
-        AudioConfig::hardwareBitsPerSample <= AudioConfig::bitsPerSample,
-        "Currently only supports hardwareBitsPerSample >= bitsPerSample");
+ESP_STATIC_ASSERT(
+    AudioConfig::hardwareBitsPerSample <= AudioConfig::bitsPerSample,
+    "Currently only supports hardwareBitsPerSample >= bitsPerSample");
 
 Recorder::Recorder(i2s_port_t deviceIndex, int sdInPin, int sckPin, int wsPin)
     : i2s_pin_config({
