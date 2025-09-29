@@ -31,8 +31,10 @@
 
 #include <BLEDevice.h>
 
+#ifndef REMOTEXY_BLUETOOTH_NAME
 // RemoteXY connection settings
 #define REMOTEXY_BLUETOOTH_NAME "RemoteXY"
+#endif
 
 #include <RemoteXY.h>
 

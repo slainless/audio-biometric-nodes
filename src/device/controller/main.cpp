@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <esp_log.h>
 
+#define REMOTEXY_BLUETOOTH_NAME "ESP32Controller"
 #include "core/remotexy.h"
 
 #include "core/mqtt.h"

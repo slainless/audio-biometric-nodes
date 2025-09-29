@@ -9,6 +9,7 @@
 #include <esp_log.h>
 #include <driver/i2s.h>
 
+#define REMOTEXY_BLUETOOTH_NAME "ESP32Recorder"
 #include "core/remotexy.h"
 
 #include "core/mqtt.h"
