@@ -31,7 +31,9 @@ using NormalizationCallback = std::function<void(int32_t sample)>;
 
 namespace Record
 {
+#if USE_REALTIME_RECORDING == 0
   RecorderResult verify(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin);
+#endif
   RecorderResult sample(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin, const char *sampleName);
   void normalizeSamples(const int32_t *data, const size_t dataSize, uint8_t *dest, NormalizationCallback cb = nullptr);
 }

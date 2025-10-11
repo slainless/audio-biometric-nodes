@@ -140,6 +140,7 @@ namespace Record
     return result;                                                          \
   }
 
+#if USE_REALTIME_RECORDING == 0
   RecorderResult verify(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin)
   {
     __assertMqttReady;
@@ -184,6 +185,7 @@ namespace Record
 
     return RecorderResult{RecorderCode::OK};
   };
+#endif
 
   RecorderResult sample(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin, const char *sampleName)
   {

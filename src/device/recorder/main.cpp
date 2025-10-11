@@ -65,6 +65,7 @@ void loop()
     });
   }
 
+#if USE_REALTIME_RECORDING == 0
   if (RemoteXY.button_recorder != LOW)
   {
     timedFor(lastRecording, 6000, {
@@ -72,6 +73,7 @@ void loop()
       Record::verify(recorder, mqtt, BUILTIN_LED_PIN);
     });
   }
+#endif
 
   if (RemoteXY.button_sampler != LOW)
   {
