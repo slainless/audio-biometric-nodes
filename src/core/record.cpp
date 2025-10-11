@@ -235,6 +235,66 @@ namespace Record
     return RecorderResult{RecorderCode::OK};
   };
 
+  RecorderResult poll(
+      Recorder &recorder, Mqtt &mqtt,
+      int32_t *buffer, size_t &bytesRead,
+      u_long &lastPeakHit, u_long &lastRecordingStart,
+      bool &isRecording,
+      uint8_t indicatorPin)
+  {
+    recorder.read(buffer, RECORDER_BUFFER_SIZE, &bytesRead);
+    int32_t peakAmplitude = 0;
+    Record::normalizeSamples(
+        buffer, RECORDER_BUFFER_SIZE, reinterpret_cast<uint8_t *>(buffer),
+        [&peakAmplitude](int32_t sample)
+        {
+          int32_t absolute = abs(sample);
+          if (absolute > peakAmplitude)
+          {
+            peakAmplitude = absolute;
+          }
+        });
+
+    auto normalizedPeakAmplitude = (float)peakAmplitude / (float)0x7FFFFF;
+    RemoteXY.recorder_peak_graph = normalizedPeakAmplitude;
+    if (normalizedPeakAmplitude >= RECORDER_AMP_THRESHOLD)
+      lastPeakHit = millis();
+    bool shouldSendRecording = millis() - lastPeakHit < RECORDER_TIME_OFFSET && (isRecording == false ||
+                                                                                 millis() - lastRecordingStart < RECORDER_MAX_RECORD_TIME);
+
+    if (isRecording == false && shouldSendRecording == true)
+    {
+      lastRecordingStart = millis();
+      isRecording = true;
+      digitalWrite(indicatorPin, HIGH);
+      auto res = mqtt.publishFragmentHeader(MqttTopic::RECORDER, MqttHeader::VERIFY);
+      __returnMqttError(res, RemoteXY.value_sampler_status);
+
+      uint8_t header[44];
+      recorder.writeWavHeader(header, 0);
+      res = mqtt.publishFragmentBody(MqttTopic::RECORDER, header, 44);
+      __returnMqttError(res, RemoteXY.value_sampler_status);
+    }
+    else if (isRecording == true && shouldSendRecording == false)
+    {
+      isRecording = false;
+      digitalWrite(indicatorPin, LOW);
+      auto res = mqtt.publishFragmentTrailer(MqttTopic::RECORDER);
+      __returnMqttError(res, RemoteXY.value_sampler_status);
+    }
+    else if (isRecording)
+    {
+      RemoteXY.led_recorder = HIGH;
+      auto res = mqtt.publishFragmentBody(MqttTopic::RECORDER, reinterpret_cast<const uint8_t *>(buffer), RECORDER_ACTUAL_BUFFER_SIZE);
+      __returnMqttError(res, RemoteXY.value_sampler_status);
+    }
+    else
+    {
+      RemoteXY.led_recorder = LOW;
+    }
+    return RecorderResult{RecorderCode::OK};
+  }
+
 #undef __returnMqttError
 #undef __assertMqttReady
 }

@@ -55,4 +55,10 @@ namespace Record
 #endif
   RecorderResult sample(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin, const char *sampleName);
   void normalizeSamples(const int32_t *data, const size_t dataSize, uint8_t *dest, NormalizationCallback cb = nullptr);
+  RecorderResult poll(
+      Recorder &recorder, Mqtt &mqtt,
+      int32_t *buffer, size_t &bytesRead,
+      u_long &lastPeakHit, u_long &lastRecordingStart,
+      bool &isRecording,
+      uint8_t indicatorPin);
 }
