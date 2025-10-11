@@ -4,8 +4,27 @@
 #include "core/mqtt.h"
 #include <optional>
 
-#define RECORDER_SAMPLE_RATE 8000
+#ifndef RECORDER_SAMPLE_RATE
+#define RECORDER_SAMPLE_RATE 4000
+#endif
+
+#ifndef RECORDER_BUFFER_SIZE
 #define RECORDER_BUFFER_SIZE 512
+#endif
+
+#ifndef RECORDER_AMP_THRESHOLD
+#define RECORDER_AMP_THRESHOLD 0.005
+#endif
+
+#ifndef RECORDER_TIME_OFFSET
+#define RECORDER_TIME_OFFSET 500 // ms
+#endif
+
+#ifndef RECORDER_MAX_RECORD_TIME
+#define RECORDER_MAX_RECORD_TIME 4000 // ms
+#endif
+
+#define RECORDER_ACTUAL_BUFFER_SIZE RECORDER_BUFFER_SIZE *AudioConfig::validBytesPerSample / AudioConfig::bytesPerSample
 
 struct MqttTransmissionResult
 {
