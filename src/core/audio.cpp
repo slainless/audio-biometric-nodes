@@ -99,6 +99,18 @@ void writeSamples(
   }
 }
 
+esp_err_t Recorder::read(int32_t *buffer, const size_t bufferSize, size_t *bytesRead)
+{
+  if (bufferSize % AudioConfig::bytesPerSample != 0)
+  {
+    ESP_LOGE(TAG, "Buffer size must be a multiple of bytes per sample");
+    return ESP_ERR_INVALID_ARG;
+  }
+
+  return i2s_read(deviceIndex, buffer, bufferSize, bytesRead,
+                  portMAX_DELAY);
+}
+
 bool Recorder::readFor(unsigned long durationMs, size_t bufferSize, RecordingCallback callback)
 {
   if (bufferSize % AudioConfig::bytesPerSample != 0)

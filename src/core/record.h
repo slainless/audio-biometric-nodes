@@ -5,6 +5,7 @@
 #include <optional>
 
 #define RECORDER_SAMPLE_RATE 8000
+#define RECORDER_BUFFER_SIZE 512
 
 struct MqttTransmissionResult
 {
@@ -26,8 +27,11 @@ struct RecorderResult
   std::optional<MqttTransmissionResult> mqttError;
 };
 
+using NormalizationCallback = std::function<void(int32_t sample)>;
+
 namespace Record
 {
   RecorderResult verify(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin);
   RecorderResult sample(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin, const char *sampleName);
+  void normalizeSamples(const int32_t *data, const size_t dataSize, uint8_t *dest, NormalizationCallback cb = nullptr);
 }

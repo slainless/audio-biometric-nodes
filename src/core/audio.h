@@ -22,6 +22,8 @@ public:
 
   void begin(uint32_t sampleRate);
   void end();
+
+  esp_err_t read(int32_t *buffer, const size_t bufferSize, size_t *bytesRead);
   bool readFor(unsigned long durationMs, size_t bufferSize, RecordingCallback callback = nullptr);
 
   void writeWavHeader(uint8_t *buf, uint32_t totalSamples);

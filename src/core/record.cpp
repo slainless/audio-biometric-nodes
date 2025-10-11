@@ -12,7 +12,6 @@
 #include <cstring>
 
 #define WAV_FILE_PATH "/recording.wav"
-#define RECORDER_BUFFER_SIZE 512
 #define RECORDER_DURATION 5000
 
 ESP_STATIC_ASSERT(
@@ -40,6 +39,27 @@ namespace Record
     ESP_LOGI(TAG, "MQTT client is not initialized, please setup mqtt"); \
     RecorderResult result{RecorderCode::MQTT_NOT_READY};                \
     return result;                                                      \
+  }
+
+  void normalizeSamples(const int32_t *data, const size_t dataSize, uint8_t *dest, NormalizationCallback cb)
+  {
+    size_t actualBufferSize = RECORDER_BUFFER_SIZE * AudioConfig::validBytesPerSample / AudioConfig::bytesPerSample;
+    size_t bytesWritten = 0;
+    size_t loops = RECORDER_BUFFER_SIZE / AudioConfig::bytesPerSample;
+
+    for (size_t i = 0; i < loops; i++)
+    {
+      auto sample = data[i];
+      if (AudioConfig::isLeftJustified)
+        sample = sample >> 8;
+      if (cb)
+        cb(sample);
+
+      auto v = reinterpret_cast<uint8_t *>(&sample);
+      dest[bytesWritten++] = v[0];
+      dest[bytesWritten++] = v[1];
+      dest[bytesWritten++] = v[2];
+    }
   }
 
   RecorderResult start(Recorder &recorder, Mqtt &mqtt, uint8_t blinkingPin)
@@ -81,21 +101,8 @@ namespace Record
             RemoteXY_Handler();
           });
 
-          size_t bytesWritten = 0;
           uint8_t buf[actualBufferSize];
-          for (size_t i = 0; i < RECORDER_BUFFER_SIZE / AudioConfig::bytesPerSample; i++)
-          {
-            auto sample = data[i];
-            if (AudioConfig::isLeftJustified)
-            {
-              sample = sample >> 8;
-            }
-
-            auto v = reinterpret_cast<uint8_t *>(&sample);
-            buf[bytesWritten++] = v[0];
-            buf[bytesWritten++] = v[1];
-            buf[bytesWritten++] = v[2];
-          }
+          normalizeSamples(data, RECORDER_BUFFER_SIZE, buf);
 
           auto res = mqtt.publishFragmentBody(MqttTopic::RECORDER, buf, actualBufferSize);
           if (res != 0)
