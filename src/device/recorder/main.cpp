@@ -60,16 +60,16 @@ auto lastConfig = millis();
 auto lastRecording = millis();
 auto lastSampling = millis();
 auto lastSamplingTry = millis();
+auto lastPeakHit = millis();
+auto lastRecordingStart = millis();
 
+size_t bytesRead;
+size_t actualBufferSize = RECORDER_BUFFER_SIZE * AudioConfig::validBytesPerSample / AudioConfig::bytesPerSample;
+int32_t realtimeBuffer[RECORDER_BUFFER_SIZE];
+bool isSendingRecorder = false;
 void loop()
 {
   RemoteXY_Handler();
-  if (RemoteXY.button_store_config != LOW)
-  {
-    timedFor(lastConfig, 1000, {
-      RemoteXYConfigurer::configureNetwork(wifiConfig, mqttConfig, mqtt);
-    });
-  }
 
 #if USE_REALTIME_RECORDING == 0
   if (RemoteXY.button_recorder != LOW)
@@ -79,7 +79,23 @@ void loop()
       Record::verify(recorder, mqtt, BUILTIN_LED_PIN);
     });
   }
+#else
+  {
+    Record::poll(
+        recorder, mqtt,
+        realtimeBuffer, bytesRead,
+        lastPeakHit, lastRecordingStart,
+        isSendingRecorder,
+        BUILTIN_LED_PIN);
+  }
 #endif
+
+  if (RemoteXY.button_store_config != LOW)
+  {
+    timedFor(lastConfig, 1000, {
+      RemoteXYConfigurer::configureNetwork(wifiConfig, mqttConfig, mqtt);
+    });
+  }
 
   if (RemoteXY.button_sampler != LOW)
   {
