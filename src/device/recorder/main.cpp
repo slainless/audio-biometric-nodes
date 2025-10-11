@@ -28,7 +28,6 @@ Mqtt mqtt(RECORDER_IDENTIFIER);
 Recorder recorder(I2S_NUM_0, RECORDER_SD_PIN, RECORDER_SCK_PIN,
                   RECORDER_WS_PIN);
 
-static SemaphoreHandle_t taskMutex = nullptr;
 createTag(MAIN);
 
 void setup()
@@ -48,8 +47,6 @@ void setup()
 
   RemoteXYConfigurer::updateConfigToRemote(wifiConfig, mqttConfig);
   RemoteXYConfigurer::resetVerifyResult();
-
-  taskMutex = xSemaphoreCreateMutex();
 }
 
 auto lastReconnectAttempt = millis();
@@ -63,14 +60,14 @@ void loop()
   RemoteXY_Handler();
   if (RemoteXY.button_store_config != LOW)
   {
-    controlledTask(taskMutex, lastConfig, 1000, {
+    timedFor(lastConfig, 1000, {
       RemoteXYConfigurer::configureNetwork(wifiConfig, mqttConfig, mqtt);
     });
   }
 
   if (RemoteXY.button_recorder != LOW)
   {
-    controlledTask(taskMutex, lastRecording, 6000, {
+    timedFor(lastRecording, 6000, {
       RemoteXYConfigurer::resetVerifyResult();
       Record::verify(recorder, mqtt, BUILTIN_LED_PIN);
     });
@@ -83,7 +80,7 @@ void loop()
       sampleName.trim();
       if (sampleName.charAt(0) != '\0')
       {
-        controlledTask(taskMutex, lastSampling, 6000, {
+        timedFor(lastSampling, 6000, {
           Record::sample(recorder, mqtt, BUILTIN_LED_PIN, sampleName.c_str());
         });
       }
@@ -97,7 +94,7 @@ void loop()
   mqtt.poll(
       []
       {
-        controlledTask(taskMutex, lastReconnectAttempt, 1000, {
+        timedFor(lastReconnectAttempt, 1000, {
           MqttConfigurer::reconnect(mqttConfig, mqtt);
           subscribeToVerifyResult(mqtt);
         });
