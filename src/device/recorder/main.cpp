@@ -5,12 +5,6 @@
 #define BUILTIN_LED_PIN 2
 #define PRINT_TASK_HIGHWATERMARK
 
-#define RECORDER_SAMPLE_RATE 4000
-#define RECORDER_BUFFER_SIZE 512
-#define RECORDER_AMP_THRESHOLD 0.005
-#define RECORDER_TIME_OFFSET 500
-#define RECORDER_MAX_RECORD_TIME 4000
-
 #include <Arduino.h>
 #include <esp_log.h>
 #include <driver/i2s.h>
