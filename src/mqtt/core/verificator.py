@@ -7,6 +7,7 @@ from .ffi import Protocol
 from ...biometric import Verificator
 
 import logging
+import struct
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +23,13 @@ class VerificationHandler:
 
     def __call__(self, server: MqttServer, id: str, data: bytes) -> Any:
         logger.info(f"[{id}] Verifying audio...")
+        wav = bytearray(data)
+        data_len = len(wav) - 44
+        wav[40:44] = struct.pack("<I", data_len)
+        wav[4:8] = struct.pack("<I", 36 + data_len)
+
         result = self.verificator.verify(
-            data, threshold=self.threshold, stop_at_unverified=self.stop_at_unverified
+            wav, threshold=self.threshold, stop_at_unverified=self.stop_at_unverified
         )
         self._executor.submit(server.send_verification_result, "", result)
         logger.info(f"[{id}] Verification result:\n{result}")
